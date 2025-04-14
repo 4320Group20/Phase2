@@ -13,7 +13,7 @@ $ ./init.bash
 The website will then be open at http://localhost:3000
 
 Members:
-Andrew Klusmeyer
-Ashton Wooster
-Brenden Chandler
+Andrew Klusmeyer,
+Ashton Wooster,
+Brenden Chandler,
 Skylar Perry
