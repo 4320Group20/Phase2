@@ -7,7 +7,7 @@ Verify that Node.js is installed.
 To start up local website and database enter this command into your terminal:
 
 ```bash
-$ ./init.bash
+$ ./init.sh
 ```
 
 The website will then be open at http://localhost:3000
