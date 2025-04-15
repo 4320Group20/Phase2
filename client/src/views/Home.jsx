@@ -9,10 +9,14 @@ const Home = () => {
             <h2 style={styles.subtitle}>Welcome to the iFINANCE Management System</h2>
 
             
-            <Link to="/signin" style={styles.linkButton}>
-                Go to Sign In
-            </Link>
-            <Link to="/create-transaction">Create Transaction</Link>
+            <nav>
+                <ul style={{ listStyleType: 'none', padding: 0 }}>
+                    <li><Link to="/signin">Sign In / Create Account</Link></li>
+                    <li><Link to="/transactions/new">Create Transaction</Link></li>
+                    <li><Link to="/transactions/history">View Transaction History</Link></li>
+                </ul>
+            </nav>
+
         </div>
     );
 }
