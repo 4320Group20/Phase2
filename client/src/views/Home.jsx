@@ -12,6 +12,7 @@ const Home = () => {
             <Link to="/signin" style={styles.linkButton}>
                 Go to Sign In
             </Link>
+            <Link to="/create-transaction">Create Transaction</Link>
         </div>
     );
 }
