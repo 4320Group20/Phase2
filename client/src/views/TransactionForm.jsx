@@ -9,6 +9,8 @@ function TransactionForm() {
         lines: [],
     });
 
+    const [errors, setErrors] = useState([]);
+
     const handleChange = (field, value) => {
         setTransaction({ ...transaction, [field]: value });
     };
@@ -34,12 +36,44 @@ function TransactionForm() {
     const handleSubmit = (e) => {
         e.preventDefault();
         console.log('Submitting Transaction:', transaction);
+
+        if (!validate()) return;
+
         //TODO: POST TO BACKEND
+    };
+
+    const validate = () => {
+        const newErrors = [];
+
+        if (!transaction.id.trim()) newErrors.push('Transaction ID is required.');
+        if (!transaction.date.trim()) newErrors.push('Transaction date is required.');
+        if (!transaction.description.trim()) newErrors.push('Transaction description is required.');
+        if (transaction.lines.length === 0) newErrors.push('At least one transaction line is required.');
+
+        transaction.lines.forEach((line, index) => {
+            if (!line.id.trim()) newErrors.push(`Line ${index + 1}: ID is required.`);
+            const credit = parseFloat(line.creditedAmount || 0);
+            const debit = parseFloat(line.debitedAmount || 0);
+            if (isNaN(credit) || credit < 0) newErrors.push(`Line ${index + 1}: Credited amount must be a non-negative number.`);
+            if (isNaN(debit) || debit < 0) newErrors.push(`Line ${index + 1}: Debited amount must be a non-negative number.`);
+            if (credit === 0 && debit === 0) newErrors.push(`Line ${index + 1}: Either credited or debited amount must be greater than 0.`);
+        });
+
+        setErrors(newErrors);
+        return newErrors.length === 0;
     };
 
     return (
         <div>
             <h2>Create New Transaction</h2>
+            {errors.length > 0 && (
+                <div style={{ color: 'red' }}>
+                    <h4>Please fix the following errors:</h4>
+                    <ul>
+                        {errors.map((err, idx) => <li key={idx}>{err}</li>)}
+                    </ul>
+                </div>
+            )}
             <form onSubmit={handleSubmit}>
                 <input
                     type="text"
