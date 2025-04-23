@@ -1,94 +1,153 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import bgImage from '../assets/webBackground.webp';
 
 const SignIn = () => {
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError]       = useState(null);
+  const navigate = useNavigate();
 
-    const handleLogin = (e) => {
-        e.preventDefault();
-        // TODO: Send credentials to backend for authentication
-        console.log('Attempting login:', { username, password });
-    };
+  useEffect(() => {
+    document.body.style.margin     = '0';
+    document.body.style.padding    = '0';
+    document.body.style.fontFamily = 'Roboto, sans-serif';
+  }, []);
 
-    const handleCreateAccount = () => {
-        // Navigate to account creation page
-        console.log('Redirecting to account creation...');
-    };
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError(null);
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      if (!res.ok) throw new Error('Invalid credentials');
+    } catch (err) {
+      setError(err.message);
+    }
+  };
 
-    return (
-        <div style={styles.container}>
-            <h1 style={styles.title}>Welcome to iFINANCE</h1>
-            <div style={styles.formContainer}>
-                <h2>Sign In</h2>
-                <form onSubmit={handleLogin}>
-                    <div style={styles.inputGroup}>
-                        <label>Username</label>
-                        <input
-                            type="text"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            required
-                        />
-                    </div>
+  const handleCreateAccount = () => navigate('/signup');
 
-                    <div style={styles.inputGroup}>
-                        <label>Password</label>
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                        />
-                    </div>
+  return (
+    <div style={styles.page}>
+      <div style={styles.formWrapper}>
+        <h1 style={styles.title}>Welcome to iFINANCE</h1>
+        <h2 style={styles.subtitle}>Sign In</h2>
 
-                    <button type="submit" style={styles.button}>Log In</button>
-                </form>
+        {error && <div style={styles.error}>{error}</div>}
 
-                <p style={{ marginTop: '1rem' }}>Don't have an account?</p>
-                <button onClick={handleCreateAccount} style={styles.secondaryButton}>
-                    Create Account
-                </button>
-            </div>
-        </div>
-    );
+        <form onSubmit={handleLogin}>
+          <input
+            style={styles.input}
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={e => setUsername(e.target.value)}
+            required
+          />
+
+          <input
+            style={styles.input}
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            required
+          />
+
+          <button type="submit" style={styles.primaryButton}>
+            Log In
+          </button>
+        </form>
+
+        <p style={styles.text}>Don't have an account?</p>
+        <button
+          onClick={handleCreateAccount}
+          style={styles.secondaryButton}
+        >
+          Create Account
+        </button>
+      </div>
+    </div>
+  );
 };
 
 const styles = {
-    container: {
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        padding: '2rem',
-        fontFamily: 'Arial, sans-serif',
-    },
-    title: {
-        fontSize: '2.5rem',
-        marginBottom: '1.5rem',
-    },
-    formContainer: {
-        border: '1px solid #ccc',
-        borderRadius: '10px',
-        padding: '2rem',
-        width: '300px',
-        textAlign: 'center',
-    },
-    inputGroup: {
-        marginBottom: '1rem',
-        textAlign: 'left',
-    },
-    button: {
-        width: '100%',
-        padding: '0.5rem',
-        fontSize: '1rem',
-        marginTop: '1rem',
-    },
-    secondaryButton: {
-        marginTop: '0.5rem',
-        padding: '0.5rem',
-        width: '100%',
-        backgroundColor: '#eee',
-        border: '1px solid #aaa',
-    },
+  page: {
+    width:             '100vw',
+    height:            '100vh',
+    backgroundImage:   `url(${bgImage})`,
+    backgroundSize:    'cover',
+    backgroundPosition:'center',
+    display:           'flex',
+    justifyContent:    'center',
+    alignItems:        'center',
+  },
+  formWrapper: {
+    backgroundColor: 'rgba(255,255,255,0.85)',
+    borderRadius:    '12px',
+    padding:         '3rem 2rem',
+    width:           '360px',
+    boxShadow:       '0 6px 18px rgba(0,0,0,0.2)',
+    textAlign:       'center',
+  },
+  title: {
+    margin:     '0 0 0.5rem',
+    fontSize:   '2rem',
+    fontWeight: '700',
+  },
+  subtitle: {
+    margin:     '0 0 1.5rem',
+    fontSize:   '1.25rem',
+    fontWeight: '500',
+  },
+  input: {
+    width:         '100%',
+    padding:       '0.75rem',
+    marginBottom:  '1.5rem',
+    fontSize:      '1rem',
+    fontFamily:    'inherit',
+    borderRadius:  '6px',
+    border:        '1px solid #ccc',
+    boxSizing:     'border-box',
+  },
+  primaryButton: {
+    display:      'block',
+    width:        '60%',
+    margin:       '2rem auto 2.5rem',
+    padding:      '0.75rem',
+    fontSize:     '1rem',
+    fontFamily:   'inherit',
+    cursor:       'pointer',
+    border:       'none',
+    borderRadius: '6px',
+    background:   '#007bff',
+    color:        'white',
+  },
+  text: {
+    marginTop: '1.25rem',
+    fontSize:  '0.9rem',
+  },
+  secondaryButton: {
+    display:      'block',
+    width:        '60%',
+    margin:       '0.75rem auto 0',
+    padding:      '0.75rem',
+    fontSize:     '1rem',
+    fontFamily:   'inherit',
+    cursor:       'pointer',
+    border:       '1px solid #007bff',
+    borderRadius: '6px',
+    background:   'white',
+    color:        '#007bff',
+  },
+  error: {
+    color:       '#d9534f',
+    marginBottom:'1rem',
+  },
 };
 
 export default SignIn;
