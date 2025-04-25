@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import TransactionLineInput from '../components/TransactionLineInput';
 import { Link } from 'react-router-dom'; // Import for navigation using Link
+import bgImage from '../assets/webBackground.webp';
 
 function TransactionForm() {
     const [transaction, setTransaction] = useState({
@@ -84,7 +85,6 @@ function TransactionForm() {
             totalCredited += credit;
         });
 
-        // Double-entry check: Total debited must equal total credited
         if (totalDebited !== totalCredited) {
             newErrors.push('Total debited amount must equal total credited amount for double-entry accounting.');
         }
@@ -94,59 +94,86 @@ function TransactionForm() {
     };
 
     return (
-        <div style={styles.container}>
-            <h2 style={styles.title}>Create New Transaction</h2>
-            {errors.length > 0 && (
-                <div style={styles.errorContainer}>
-                    <h4>Please fix the following errors:</h4>
-                    <ul>
-                        {errors.map((err, idx) => <ul key={idx}>{err}</ul>)}
-                    </ul>
-                </div>
-            )}
-            <form onSubmit={handleSubmit} style={styles.form}>
-                <input
-                    type="text"
-                    placeholder="Transaction ID"
-                    value={transaction.id}
-                    onChange={(e) => handleChange('id', e.target.value)}
-                    style={styles.input}
-                />
-                <input
-                    type="datetime-local"
-                    value={transaction.date}
-                    onChange={(e) => handleChange('date', e.target.value)}
-                    style={styles.input}
-                />
-                <input
-                    type="text"
-                    placeholder="Description"
-                    value={transaction.description}
-                    onChange={(e) => handleChange('description', e.target.value)}
-                    style={styles.input}
-                />
+<div style={styles.page}>
+      {/* ← This is your semi-opaque “card” in front of it */}
+      <div style={styles.container}>
+        <h2 style={styles.title}>Create New Transaction</h2>
 
-                <h3 style={styles.subTitle}>Transaction Lines</h3>
-                {transaction.lines.map((line, index) => (
-                    <TransactionLineInput
-                        key={index}
-                        index={index}
-                        line={line}
-                        onChange={handleLineChange}
-                        onRemove={removeLine}
-                    />
-                ))}
-                <button type="button" onClick={addLine} style={styles.addLineButton}>Add Transaction Line</button>
-                <br /><br />
-                <button type="submit" style={styles.submitButton}>Submit Transaction</button>
-            </form>
+        {errors.length > 0 && (
+          <div style={styles.errorContainer}>
+            <h4>Please fix the following errors:</h4>
+            <ul>
+              {errors.map((err, idx) => (
+                <li key={idx}>{err}</li>
+              ))}
+            </ul>
+          </div>
+        )}
 
-            <Link to="/" style={styles.returnButton}>Return to Home Screen</Link>
-        </div>
-    );
+        <form onSubmit={handleSubmit} style={styles.form}>
+          <input
+            type="text"
+            placeholder="Transaction ID"
+            value={transaction.id}
+            onChange={(e) => handleChange('id', e.target.value)}
+            style={styles.input}
+          />
+          <input
+            type="datetime-local"
+            value={transaction.date}
+            onChange={(e) => handleChange('date', e.target.value)}
+            style={styles.input}
+          />
+          <input
+            type="text"
+            placeholder="Description"
+            value={transaction.description}
+            onChange={(e) => handleChange('description', e.target.value)}
+            style={styles.input}
+          />
+
+          <h3 style={styles.subTitle}>Transaction Lines</h3>
+          {transaction.lines.map((line, idx) => (
+            <TransactionLineInput
+              key={idx}
+              index={idx}
+              line={line}
+              onChange={handleLineChange}
+              onRemove={removeLine}
+            />
+          ))}
+
+          <button
+            type="button"
+            onClick={addLine}
+            style={styles.addLineButton}
+          >
+            Add Transaction Line
+          </button>
+          <br />
+          <br />
+          <button type="submit" style={styles.submitButton}>
+            Submit Transaction
+          </button>
+        </form>
+
+        <Link to="/" style={styles.returnButton}>
+          Return to Home Screen
+        </Link>
+      </div>
+    </div>
+  );
 }
 
-const styles = {
+const styles = {    
+
+    page: {
+        backgroundImage: `url(${bgImage})`,
+        backgroundSize:    'cover',
+        backgroundPosition:'center',
+        minHeight:         '100vh',
+        padding:           '2rem 0',
+    },
     container: {
         padding: '2rem',
         maxWidth: '800px',
