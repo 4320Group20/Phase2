@@ -55,7 +55,7 @@ exports.registerUser = (req, res) => {
             passwordExpiryTime: 90,                   // default days
             userAccountExpiryDate: new Date().toISOString()
         });
-        const password_id = UserPassword.getByUserName(username);
+        const password_id = password_obj.lastInsertRowid;
 
         // insert into users table
         const user = NonAdminUser.createUser({ name: name, username: username, address: address, email: email, password_id: password_id});

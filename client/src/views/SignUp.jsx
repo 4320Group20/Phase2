@@ -18,7 +18,7 @@ const SignUp = () => {
     document.body.style.fontFamily = 'Roboto, sans-serif';
   }, []);
 
-  const handleSignUp = (e) => {
+  const handleSignUp = async (e) => {
     e.preventDefault();
     setError(null);
 
@@ -26,8 +26,26 @@ const SignUp = () => {
       setError("Passwords don't match");
       return;
     }
+
+    const userData = {
+      name: name,
+      username: username,
+      password: password,
+      address: address,
+      email: email
+    }
+    const response = await fetch('http://localhost:5000/api/users/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(userData)
+    });
+    const result = await response.json();
+    console.log(result);
+
     // mock success
-    navigate('/signin');
+    // navigate('/signin');
   };
 
   const handleBack = () => navigate('/signin');

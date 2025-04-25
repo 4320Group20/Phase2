@@ -3,13 +3,12 @@ const db = require('../db');
 module.exports = {
     createUserPassword: ({ encryptedPassword, passwordExpiryTime, userAccountExpiryDate }) => {
         const q = db.prepare(`
-            INSERT INTO userpassword (encryptedPassword, passwordExpiryTime, userAccountExpiryDate)
+            INSERT INTO userpassword (encrypted_Password, password_Expiry_Time, user_Account_Expiry_Date)
             VALUES (?,?,?)
         `);
-        q.run(encryptedPassword, passwordExpiryTime, userAccountExpiryDate);
-        return;
+        const result = q.run(encryptedPassword, passwordExpiryTime, userAccountExpiryDate);
+        return result;
     },
-
 
     getAllUserPasswords: () => {
         const query = db.prepare(`SELECT * FROM userpassword`);
@@ -21,9 +20,14 @@ module.exports = {
         return query.get(id);
     },
 
-    getByUserName: (userName) => {
-        const query = db.prepare(`SELECT * FROM userpassword WHERE userName = ?`);
-        return query.get(userName);
+    getByUserName: (username) => {
+        const query = db.prepare(`
+            SELECT up.*
+            FROM userpassword up
+            JOIN nonadminuser u ON u.userpassword_id = up.userpassword_id
+            WHERE u.username = ?
+          `);
+          const userPassword = query.get(username);
     },
 
     updateUserPassword: (id, newData) => {

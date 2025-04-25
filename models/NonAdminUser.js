@@ -6,7 +6,7 @@ module.exports = {
             INSERT INTO nonadminuser (name, username, address, email, userpassword_id)
             VALUES (?, ?, ?, ?, ?)
           `);
-        const result = query.run(userData.name, userData.address, userData.email, userData.password_id);
+        const result = query.run(userData.name, userData.username, userData.address, userData.email, userData.password_id);
         return { id: result.lastInsertRowid, ...userData };
     },
 

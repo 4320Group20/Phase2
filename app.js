@@ -1,4 +1,5 @@
 const path = require('path');
+const cors = require('cors');
 const express = require('express');
 const userRoutes = require('./routes/UserRoutes');
 const transactionRoutes = require('./routes/TransactionRoutes');
@@ -9,6 +10,7 @@ const app = express();
 
 // Routes and Parsing
 app.use(express.json());
+app.use(cors());
 app.use('/api/users', userRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/reports', reportRoutes);
