@@ -1,14 +1,13 @@
 const db = require('../db');
 
 module.exports = {
-    createUserPassword: async ({ id, encryptedPassword, passwordExpiryTime, userAccountExpiryDate }) => {
+    createUserPassword: async ({ encryptedPassword, passwordExpiryTime, userAccountExpiryDate }) => {
         const q = db.prepare(`
-      INSERT INTO userpasswords
-        (id, encryptedPassword, passwordExpiryTime, userAccountExpiryDate)
-      VALUES (?,  ?,                 ?,                  ?)
-    `);
-        q.run(id, encryptedPassword, passwordExpiryTime, userAccountExpiryDate);
-        return { id, encryptedPassword, passwordExpiryTime, userAccountExpiryDate };
+            INSERT INTO userpasswords (encryptedPassword, passwordExpiryTime, userAccountExpiryDate)
+            VALUES (?,?,?)
+        `);
+        q.run(encryptedPassword, passwordExpiryTime, userAccountExpiryDate);
+        return;
     },
 
 

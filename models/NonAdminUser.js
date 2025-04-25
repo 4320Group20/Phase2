@@ -3,10 +3,10 @@ const db = require('../db');
 module.exports = {
     createUser: async (userData) => {
         const query = db.prepare(`
-            INSERT INTO nonadminuser (name, username, address, email)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO nonadminuser (name, username, address, email, userpassword_id)
+            VALUES (?, ?, ?, ?, ?)
           `);
-        const result = query.run(userData.name, userData.address, userData.email);
+        const result = query.run(userData.name, userData.address, userData.email, userData.password_id);
         return { id: result.lastInsertRowid, ...userData };
     },
 

@@ -36,30 +36,29 @@ const updatePasswordInDB = (userId, newPassword) => {
  * POST /api/auth/signup
  * Body: { name, userName, password, address, email }
  */
-exports.registerUser = async (req, res) => {
+exports.registerUser = (req, res) => {
     const { name, username, password, address, email } = req.body;
     if (!name || !username || !password || !address || !email) {
         return res.status(400).json({ message: 'All fields are required.' });
     }
 
     try {
-        // 1) ensure username unique
-        const exists = await NonAdminUser.getUserByUsername(username);
+        // ensure username unique
+        const exists = NonAdminUser.getUserByUsername(username);
         if (exists) {
             return res.status(400).json({ message: 'Username already exists.' });
         }
 
-        // 2) insert into users table; get back { id, … }
-        const user = await NonAdminUser.createUser({ name, username, address, email });
-
-        // 3) hash + store password record keyed by that id
-        const hash = await bcrypt.hash(password, 10);
-        await UserPassword.createUserPassword({
-            id: user.id,
+        const hash = 'EpicHash'; // await bcrypt.hash(password, 10); TODO: FIX THIS!!!
+        const password_obj = UserPassword.createUserPassword({
             encryptedPassword: hash,
             passwordExpiryTime: 90,                   // default days
             userAccountExpiryDate: new Date().toISOString()
         });
+        const password_id = UserPassword.getByUserName(username);
+
+        // insert into users table
+        const user = NonAdminUser.createUser({ name: name, username: username, address: address, email: email, password_id: password_id});
 
         return res.status(201).json({
             message: 'User registered.',
@@ -80,7 +79,7 @@ exports.authenticate = async (req, res) => {
     }
 
     try {
-        // 1) look up user row by username -> get { id, … }
+        // 1) look up user row by username -> get { id, ï¿½ }
         const user = await NonAdminUser.getUserByUsername(username);
         if (!user) {
             return res.status(401).json({ message: 'Invalid credentials.' });
