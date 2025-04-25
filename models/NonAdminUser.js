@@ -1,12 +1,3 @@
-const mongoose = require('mongoose');
-
-const nonAdminUserSchema = new mongoose.Schema({
-    name: { type: String, required: true },
-    address: {type: String, required: true},
-    email: { type: String, required: true}
-});
-const userModel = mongoose.model('NonAdminUser', nonAdminUserSchema, 'nonadminuser');
-
 module.exports = {
     createUser: async (userData) => {
         const user = new userModel(userData);
