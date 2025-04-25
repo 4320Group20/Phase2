@@ -24,7 +24,7 @@ const encryptPassword = (password) =>
  * POST /api/auth/signup
  * Body: { name, userName, password, address, email }
  */
-exports.registerUser = async (req, res) => {
+exports.registerUser = (req, res) => {
     const { name, userName, password, address, email } = req.body;
 
     if (!name || !userName || !password || !address || !email) {
@@ -40,7 +40,7 @@ exports.registerUser = async (req, res) => {
         const id = uuidv4();
 
         // 2) hash password
-        const encryptedPassword = await encryptPassword(password);
+        const encryptedPassword = encryptPassword(password);
 
         // 3) store UserPassword record
         const userPwRecord = new UserPassword(
@@ -70,7 +70,7 @@ exports.registerUser = async (req, res) => {
  * POST /api/auth/login
  * Body: { userName, password }
  */
-exports.authenticate = async (req, res) => {
+exports.authenticate = (req, res) => {
     const { userName, password } = req.body;
 
     if (!userName || !password) {
@@ -85,7 +85,7 @@ exports.authenticate = async (req, res) => {
         }
 
         // 2) hash incoming password and compare
-        const hashedAttempt = await encryptPassword(password);
+        const hashedAttempt = encryptPassword(password);
         if (hashedAttempt !== pwRecord.encryptedPassword) {
             return res.status(401).json({ message: 'Invalid username or password.' });
         }
