@@ -537,48 +537,188 @@ app.post('/report', (req, res) => {
     }
 });
 
-// GET account categories
+// GET all categories
 app.get('/account-categories', (req, res) => {
-    const categories = db.prepare(
-        'SELECT accountcategory_id AS id, name, type, group_id AS root_group_id FROM accountcategory'
-    ).all();
-    res.json({ categories });
+    try {
+        const cats = db.prepare(`
+      SELECT
+        accountcategory_id AS accountcategory_id,
+        name,
+        type
+      FROM accountcategory
+    `).all();
+        res.json({ categories: cats });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Could not fetch categories.' });
+    }
 });
 
-// GET all groups
+// POST a new category
+app.post('/account-categories', (req, res) => {
+    const { name, type } = req.body;
+    if (!name) return res.status(400).json({ message: 'Name is required.' });
+    try {
+        const info = db.prepare(`
+      INSERT INTO accountcategory (name, type)
+      VALUES (?, ?)
+    `).run(name, type || null);
+        const cat = db.prepare(`
+      SELECT accountcategory_id AS accountcategory_id, name, type
+      FROM accountcategory
+      WHERE accountcategory_id = ?
+    `).get(info.lastInsertRowid);
+        res.status(201).json({ category: cat });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Could not create category.' });
+    }
+});
+
+// PUT (rename/update) a category
+app.put('/account-categories/:id', (req, res) => {
+    const id = Number(req.params.id);
+    const { name, type } = req.body;
+    if (!name && type === undefined) {
+        return res.status(400).json({ message: 'Nothing to update.' });
+    }
+    const sets = [];
+    const vals = [];
+    if (name) { sets.push('name = ?'); vals.push(name); }
+    if (type !== undefined) { sets.push('type = ?'); vals.push(type); }
+    vals.push(id);
+
+    try {
+        const info = db.prepare(`
+      UPDATE accountcategory
+      SET ${sets.join(', ')}
+      WHERE accountcategory_id = ?
+    `).run(...vals);
+        if (info.changes === 0) {
+            return res.status(404).json({ message: 'Category not found.' });
+        }
+        res.json({ message: 'Category updated.' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Could not update category.' });
+    }
+});
+
+// DELETE a category
+app.delete('/account-categories/:id', (req, res) => {
+    const id = Number(req.params.id);
+    try {
+        const info = db.prepare(`
+      DELETE FROM accountcategory
+      WHERE accountcategory_id = ?
+    `).run(id);
+        if (info.changes === 0) {
+            return res.status(404).json({ message: 'Category not found.' });
+        }
+        res.json({ message: 'Category deleted.' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Could not delete category.' });
+    }
+});
+
+
+// ─── GROUP ROUTES ───
+
+// GET all groups (with category name for the front-end)
 app.get('/groups', (req, res) => {
-    const groups = db.prepare(
-        'SELECT group_id, name, parent_masteraccount_id, parent_group_id, group_id, category_id FROM "group"'
-    ).all();
-    res.json({ groups });
+    try {
+        const gs = db.prepare(`
+      SELECT
+        g.group_id,
+        g.name,
+        g.category_id,
+        c.name AS category_name,
+        g.parent_group_id
+      FROM "group" g
+      JOIN accountcategory c
+        ON g.category_id = c.accountcategory_id
+    `).all();
+        res.json({ groups: gs });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Could not fetch groups.' });
+    }
 });
 
-// POST /groups
+// POST a new group
 app.post('/groups', (req, res) => {
-    const { name, parent_masteraccount_id, parent_group_id } = req.body;
-    if (!name) return res.status(400).json({ message: 'Name required.' });
-    const info = db.prepare(
-        'INSERT INTO "group"(name,parent_masteraccount_id,parent_group_id) VALUES(?,?,?)'
-    ).run(name, parent_masteraccount_id, parent_group_id);
-    res.status(201).json({ groupId: info.lastInsertRowid });
+    const { name, category_id, parent_group_id } = req.body;
+    if (!name || !category_id) {
+        return res.status(400).json({ message: 'Name and category_id are required.' });
+    }
+    try {
+        const info = db.prepare(`
+      INSERT INTO "group" (name, category_id, parent_group_id)
+      VALUES (?, ?, ?)
+    `).run(name, category_id, parent_group_id || null);
+        const g = db.prepare(`
+      SELECT
+        group_id, name, category_id, parent_group_id
+      FROM "group"
+      WHERE group_id = ?
+    `).get(info.lastInsertRowid);
+        res.status(201).json({ group: g });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Could not create group.' });
+    }
 });
 
-// PUT /groups/:id
+// PUT (rename/update) a group
 app.put('/groups/:id', (req, res) => {
-    const id = Number(req.params.id), { name } = req.body;
-    if (!name) return res.status(400).json({ message: 'Name required.' });
-    const info = db.prepare(
-        'UPDATE "group" SET name = ? WHERE group_id = ?'
-    ).run(name, id);
-    if (info.changes === 0) return res.status(404).json({ message: 'Group not found.' });
-    res.json({ message: 'Updated.' });
+    const id = Number(req.params.id);
+    const { name, category_id, parent_group_id } = req.body;
+    const sets = [];
+    const vals = [];
+    if (name) { sets.push('name = ?'); vals.push(name); }
+    if (category_id) { sets.push('category_id = ?'); vals.push(category_id); }
+    if (parent_group_id !== undefined) {
+        sets.push('parent_group_id = ?');
+        vals.push(parent_group_id || null);
+    }
+    if (!sets.length) {
+        return res.status(400).json({ message: 'Nothing to update.' });
+    }
+    vals.push(id);
+
+    try {
+        const info = db.prepare(`
+      UPDATE "group"
+      SET ${sets.join(', ')}
+      WHERE group_id = ?
+    `).run(...vals);
+        if (info.changes === 0) {
+            return res.status(404).json({ message: 'Group not found.' });
+        }
+        res.json({ message: 'Group updated.' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Could not update group.' });
+    }
 });
 
-// DELETE /groups/:id
+// DELETE a group
 app.delete('/groups/:id', (req, res) => {
     const id = Number(req.params.id);
-    db.prepare('DELETE FROM "group" WHERE group_id = ?').run(id);
-    res.json({ message: 'Deleted.' });
+    try {
+        const info = db.prepare(`
+      DELETE FROM "group"
+      WHERE group_id = ?
+    `).run(id);
+        if (info.changes === 0) {
+            return res.status(404).json({ message: 'Group not found.' });
+        }
+        res.json({ message: 'Group deleted.' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Could not delete group.' });
+    }
 });
 
 
