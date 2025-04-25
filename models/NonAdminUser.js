@@ -3,8 +3,8 @@ const db = require('../db');
 module.exports = {
     createUser: async (userData) => {
         const query = db.prepare(`
-            INSERT INTO nonadminuser (name, address, email)
-            VALUES (?, ?, ?)
+            INSERT INTO nonadminuser (name, username, address, email)
+            VALUES (?, ?, ?, ?)
           `);
         const result = query.run(userData.name, userData.address, userData.email);
         return { id: result.lastInsertRowid, ...userData };
@@ -34,5 +34,11 @@ module.exports = {
         const query = db.prepare(`DELETE FROM nonadminuser WHERE id = ?`);
         const result = query.run(id);
         return { deleted: result.changes > 0 };
-    }
+    },
+
+    // Look up the user record by username
+    getUserByUsername: async (username) => {
+        const q = db.prepare(`SELECT * FROM nonadminuser WHERE username = ?`);
+        return q.get(username);
+    },
 };

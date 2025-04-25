@@ -37,6 +37,7 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS nonadminuser (
     nonadminuser_id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR(255) NOT NULL,
+    username VARCHAR(255) NOT NULL UNIQUE,
     address VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     userpassword_id INTEGER NOT NULL,

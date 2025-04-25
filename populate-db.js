@@ -23,10 +23,10 @@ db.transaction(() => {
   insertPwd.run('encrypted789', 90, '2027-01-01');
 
   // Non-Admin Users
-  const insertNonAdmin = db.prepare('INSERT INTO nonadminuser (name, address, email, userpassword_id) VALUES (?, ?, ?, ?)');
-  insertNonAdmin.run('Alice', '123 Main St', 'alice@example.com', 1);
-  insertNonAdmin.run('Bob', '456 Park Ave', 'bob@example.com', 2);
-  insertNonAdmin.run('Charlie', '789 Elm St', 'charlie@example.com', 3);
+  const insertNonAdmin = db.prepare('INSERT INTO nonadminuser (name, username, address, email, userpassword_id) VALUES (?, ?, ?, ?, ?)');
+  insertNonAdmin.run('Alice', 'alice123', '123 Main St', 'alice@example.com', 1);
+  insertNonAdmin.run('Bob', 'bobby1', '456 Park Ave', 'bob@example.com', 2);
+  insertNonAdmin.run('Charlie', 'cdog', '789 Elm St', 'charlie@example.com', 3);
 
   // Administrators
   const insertAdmin = db.prepare('INSERT INTO administrator (name, date_hired, date_finished, userpassword_id) VALUES (?, ?, ?, ?)');

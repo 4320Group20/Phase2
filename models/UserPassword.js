@@ -1,36 +1,35 @@
 const db = require('../db');
 
 module.exports = {
-    createUserPassword: async (userPasswordData) => {
-        const query = db.prepare(`
-            INSERT INTO userpasswords (
-                id, userName, encryptedPassword, passwordExpiryTime, userAccountExpiryDate
-            )
-            VALUES (?, ?, ?, ?, ?)
-        `);
-        const result = query.run(
-            userPasswordData.id,
-            userPasswordData.userName,
-            userPasswordData.encryptedPassword,
-            userPasswordData.passwordExpiryTime,
-            userPasswordData.userAccountExpiryDate
-        );
-        return { id: userPasswordData.id, ...userPasswordData };
+    createUserPassword: async ({ id, encryptedPassword, passwordExpiryTime, userAccountExpiryDate }) => {
+        const q = db.prepare(`
+      INSERT INTO userpasswords
+        (id, encryptedPassword, passwordExpiryTime, userAccountExpiryDate)
+      VALUES (?,  ?,                 ?,                  ?)
+    `);
+        q.run(id, encryptedPassword, passwordExpiryTime, userAccountExpiryDate);
+        return { id, encryptedPassword, passwordExpiryTime, userAccountExpiryDate };
     },
 
+
     getAllUserPasswords: async () => {
-        const query = db.prepare(`SELECT * FROM userpasswords`);
+        const query = db.prepare(`SELECT * FROM userpassword`);
         return query.all();
     },
 
     getUserPasswordById: async (id) => {
-        const query = db.prepare(`SELECT * FROM userpasswords WHERE id = ?`);
+        const query = db.prepare(`SELECT * FROM userpassword WHERE id = ?`);
         return query.get(id);
+    },
+
+    getByUserName: async (userName) => {
+        const query = db.prepare(`SELECT * FROM userpassword WHERE userName = ?`);
+        return query.get(userName);
     },
 
     updateUserPassword: async (id, newData) => {
         const query = db.prepare(`
-            UPDATE userpasswords
+            UPDATE userpassword
             SET userName = ?, encryptedPassword = ?, passwordExpiryTime = ?, userAccountExpiryDate = ?
             WHERE id = ?
         `);
@@ -45,7 +44,7 @@ module.exports = {
     },
 
     deleteUserPassword: async (id) => {
-        const query = db.prepare(`DELETE FROM userpasswords WHERE id = ?`);
+        const query = db.prepare(`DELETE FROM userpassword WHERE id = ?`);
         const result = query.run(id);
         return { deleted: result.changes > 0 };
     }

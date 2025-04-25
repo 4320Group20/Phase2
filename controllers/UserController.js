@@ -36,83 +36,78 @@ const updatePasswordInDB = (userId, newPassword) => {
  * POST /api/auth/signup
  * Body: { name, userName, password, address, email }
  */
-exports.registerUser = (req, res) => {
-    const { name, userName, password, address, email } = req.body;
-
-    if (!name || !userName || !password || !address || !email) {
+exports.registerUser = async (req, res) => {
+    const { name, username, password, address, email } = req.body;
+    if (!name || !username || !password || !address || !email) {
         return res.status(400).json({ message: 'All fields are required.' });
     }
 
-    if (isUsernameTaken(userName)) {
-        return res.status(400).json({ message: 'Username already exists.' });
-    }
-
     try {
-        // 2) hash password
-        const encryptedPassword = encryptPassword(password);
+        // 1) ensure username unique
+        const exists = await NonAdminUser.getUserByUsername(username);
+        if (exists) {
+            return res.status(400).json({ message: 'Username already exists.' });
+        }
 
-        // 3) store UserPassword record
-        const userPwRecord = new UserPassword(
-            userName,
-            encryptedPassword,
-      /* passwordExpiryTime */ 90,                // default expiry (days)
-      /* userAccountExpiryDate */ new Date()      // default: now
-        );
-        passwords.push(userPwRecord);
+        // 2) insert into users table; get back { id, … }
+        const user = await NonAdminUser.createUser({ name, username, address, email });
 
-        // 4) create NonAdminUser (default role)
-        const newUser = new NonAdminUser(name, address, email);
-        registeredUsers.push(newUser);
-        const id = 2; // TODO: FIX THIS
+        // 3) hash + store password record keyed by that id
+        const hash = await bcrypt.hash(password, 10);
+        await UserPassword.createUserPassword({
+            id: user.id,
+            encryptedPassword: hash,
+            passwordExpiryTime: 90,                   // default days
+            userAccountExpiryDate: new Date().toISOString()
+        });
 
         return res.status(201).json({
-            message: 'User registered successfully.',
-            user: { id, name, userName, address, email }
+            message: 'User registered.',
+            user: { id: user.id, name, username, address, email }
         });
+
     } catch (err) {
         console.error(err);
-        return res.status(500).json({ message: 'Internal server error.', error: err.message });
+        return res.status(500).json({ message: 'Internal error.', error: err.message });
     }
 };
 
-/**
- * POST /api/auth/login
- * Body: { userName, password }
- */
-exports.authenticate = (req, res) => {
-    const { userName, password } = req.body;
 
-    if (!userName || !password) {
+exports.authenticate = async (req, res) => {
+    const { username, password } = req.body;
+    if (!username || !password) {
         return res.status(400).json({ message: 'Username and password required.' });
     }
 
     try {
-        // 1) find password record by userName
-        const pwRecord = passwords.find(pw => pw.userName === userName);
-        if (!pwRecord) {
-            return res.status(401).json({ message: 'Invalid username or password.' });
-        }
-
-        // 2) hash incoming password and compare
-        const hashedAttempt = encryptPassword(password);
-        if (hashedAttempt !== pwRecord.encryptedPassword) {
-            return res.status(401).json({ message: 'Invalid username or password.' });
-        }
-
-        // 3) find the corresponding user (NonAdminUser only for now)
-        const user = registeredUsers.find(u => u.id === pwRecord.id);
+        // 1) look up user row by username -> get { id, … }
+        const user = await NonAdminUser.getUserByUsername(username);
         if (!user) {
-            return res.status(500).json({ message: 'User record missing.' });
+            return res.status(401).json({ message: 'Invalid credentials.' });
         }
 
+        // 2) look up their hashed password by user.id
+        const pwRec = await UserPassword.getUserPasswordById(user.id);
+        if (!pwRec) {
+            return res.status(500).json({ message: 'Password record missing.' });
+        }
+
+        // 3) bcrypt compare
+        const ok = await bcrypt.compare(password, pwRec.encryptedPassword);
+        if (!ok) {
+            return res.status(401).json({ message: 'Invalid credentials.' });
+        }
+
+        // 4) success!
         return res.json({
             message: 'Login successful.',
             userId: user.id,
             name: user.name
         });
+
     } catch (err) {
         console.error(err);
-        return res.status(500).json({ message: 'Internal server error.', error: err.message });
+        return res.status(500).json({ message: 'Internal error.', error: err.message });
     }
 };
 
