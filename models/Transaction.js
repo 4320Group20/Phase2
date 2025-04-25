@@ -1,7 +1,7 @@
 const db = require('../db');
 
 module.exports = {
-    createTransaction: async (transactionData) => {
+    createTransaction: (transactionData) => {
         const query = db.prepare(`
             INSERT INTO transactions (
                 id, date, description
@@ -16,17 +16,17 @@ module.exports = {
         return { id: transactionData.id, ...transactionData };
     },
 
-    getAllTransactions: async () => {
+    getAllTransactions: () => {
         const query = db.prepare(`SELECT * FROM transactions`);
         return query.all();
     },
 
-    getTransactionById: async (id) => {
+    getTransactionById: (id) => {
         const query = db.prepare(`SELECT * FROM transactions WHERE id = ?`);
         return query.get(id);
     },
 
-    updateTransaction: async (id, newData) => {
+    updateTransaction: (id, newData) => {
         const query = db.prepare(`
             UPDATE transactions
             SET date = ?, description = ?
@@ -40,7 +40,7 @@ module.exports = {
         return { id, ...newData };
     },
 
-    deleteTransaction: async (id) => {
+    deleteTransaction: (id) => {
         const query = db.prepare(`DELETE FROM transactions WHERE id = ?`);
         const result = query.run(id);
         return { deleted: result.changes > 0 };

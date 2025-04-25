@@ -72,7 +72,7 @@ exports.registerUser = (req, res) => {
 };
 
 
-exports.authenticate = async (req, res) => {
+exports.authenticate = (req, res) => {
     const { username, password } = req.body;
     if (!username || !password) {
         return res.status(400).json({ message: 'Username and password required.' });
@@ -80,19 +80,19 @@ exports.authenticate = async (req, res) => {
 
     try {
         // 1) look up user row by username -> get { id, � }
-        const user = await NonAdminUser.getUserByUsername(username);
+        const user = NonAdminUser.getUserByUsername(username);
         if (!user) {
             return res.status(401).json({ message: 'Invalid credentials.' });
         }
 
         // 2) look up their hashed password by user.id
-        const pwRec = await UserPassword.getUserPasswordById(user.id);
+        const pwRec = UserPassword.getUserPasswordById(user.id);
         if (!pwRec) {
             return res.status(500).json({ message: 'Password record missing.' });
         }
 
         // 3) bcrypt compare
-        const ok = await bcrypt.compare(password, pwRec.encryptedPassword);
+        const ok = bcrypt.compare(password, pwRec.encryptedPassword);
         if (!ok) {
             return res.status(401).json({ message: 'Invalid credentials.' });
         }

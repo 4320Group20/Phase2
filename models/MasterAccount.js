@@ -1,7 +1,7 @@
 const db = require('../db');
 
 module.exports = {
-    createMasterAccount: async (accountData) => {
+    createMasterAccount: (accountData) => {
         const query = db.prepare(`
             INSERT INTO masteraccounts (
                 id, name, openingAmount, closingAmount
@@ -17,17 +17,17 @@ module.exports = {
         return { id: accountData.id, ...accountData };
     },
 
-    getAllMasterAccounts: async () => {
+    getAllMasterAccounts: () => {
         const query = db.prepare(`SELECT * FROM masteraccounts`);
         return query.all();
     },
 
-    getMasterAccountById: async (id) => {
+    getMasterAccountById: (id) => {
         const query = db.prepare(`SELECT * FROM masteraccounts WHERE id = ?`);
         return query.get(id);
     },
 
-    updateMasterAccount: async (id, newData) => {
+    updateMasterAccount: (id, newData) => {
         const query = db.prepare(`
             UPDATE masteraccounts
             SET name = ?, openingAmount = ?, closingAmount = ?
@@ -42,7 +42,7 @@ module.exports = {
         return { id, ...newData };
     },
 
-    deleteMasterAccount: async (id) => {
+    deleteMasterAccount: (id) => {
         const query = db.prepare(`DELETE FROM masteraccounts WHERE id = ?`);
         const result = query.run(id);
         return { deleted: result.changes > 0 };

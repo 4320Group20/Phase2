@@ -1,7 +1,7 @@
 const db = require('../db');
 
 module.exports = {
-    createAccountCategory: async (categoryData) => {
+    createAccountCategory: (categoryData) => {
         const query = db.prepare(`
             INSERT INTO accountcategories (id, name, type)
             VALUES (?, ?, ?)
@@ -14,17 +14,17 @@ module.exports = {
         return { id: categoryData.id, ...categoryData };
     },
 
-    getAllCategories: async () => {
+    getAllCategories: () => {
         const query = db.prepare(`SELECT * FROM accountcategories`);
         return query.all();
     },
 
-    getCategoryById: async (id) => {
+    getCategoryById: (id) => {
         const query = db.prepare(`SELECT * FROM accountcategories WHERE id = ?`);
         return query.get(id);
     },
 
-    updateCategory: async (id, newData) => {
+    updateCategory: (id, newData) => {
         const query = db.prepare(`
             UPDATE accountcategories
             SET name = ?, type = ?
@@ -38,7 +38,7 @@ module.exports = {
         return { id, ...newData };
     },
 
-    deleteCategory: async (id) => {
+    deleteCategory: (id) => {
         const query = db.prepare(`DELETE FROM accountcategories WHERE id = ?`);
         const result = query.run(id);
         return { deleted: result.changes > 0 };

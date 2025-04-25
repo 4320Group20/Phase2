@@ -1,7 +1,7 @@
 const db = require('../db');
 
 module.exports = {
-    createUser: async (userData) => {
+    createUser: (userData) => {
         const query = db.prepare(`
             INSERT INTO nonadminuser (name, username, address, email, userpassword_id)
             VALUES (?, ?, ?, ?, ?)
@@ -10,17 +10,17 @@ module.exports = {
         return { id: result.lastInsertRowid, ...userData };
     },
 
-    getAllUsers: async () => {
+    getAllUsers: () => {
         const query = db.prepare(`SELECT * FROM nonadminuser`);
         return query.all();
     },
 
-    getUserById: async (id) => {
+    getUserById: (id) => {
         const query = db.prepare(`SELECT * FROM nonadminuser WHERE id = ?`);
         return query.get(id);
     },
 
-    updateUser: async (id, newData) => {
+    updateUser: (id, newData) => {
         const query = db.prepare(`
             UPDATE nonadminuser
             SET name = ?, address = ?, email = ?
@@ -30,7 +30,7 @@ module.exports = {
           return { id, ...newData };
     },
 
-    deleteUser: async (id) => {
+    deleteUser: (id) => {
         const query = db.prepare(`DELETE FROM nonadminuser WHERE id = ?`);
         const result = query.run(id);
         return { deleted: result.changes > 0 };

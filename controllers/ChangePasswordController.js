@@ -6,23 +6,23 @@ class ChangePasswordController {
     /**
      * Changes the user's password after validation.
      */
-    static async changePassword(userId, oldPassword, newPassword1, newPassword2) {
+    static changePassword(userId, oldPassword, newPassword1, newPassword2) {
         if (newPassword1 !== newPassword2) {
             return { success: false, message: "New passwords do not match." };
         }
 
-        const userRecord = await this.fetchUserPasswordFromDB(userId);
+        const userRecord = this.fetchUserPasswordFromDB(userId);
 
         if (!userRecord) {
             return { success: false, message: "User not found." };
         }
 
-        const isMatch = await bcrypt.compare(oldPassword, userRecord.encryptedPassword);
+        const isMatch = bcrypt.compare(oldPassword, userRecord.encryptedPassword);
         if (!isMatch) {
             return { success: false, message: "Old password is incorrect." };
         }
 
-        const updateSuccess = await this.updatePasswordInDB(userId, newPassword1);
+        const updateSuccess = this.updatePasswordInDB(userId, newPassword1);
         if (!updateSuccess) {
             return { success: false, message: "Failed to update password." };
         }
@@ -30,15 +30,15 @@ class ChangePasswordController {
         return { success: true, message: "Password changed successfully." };
     }
 
-    static async fetchUserPasswordFromDB(userId) {
-        return await UserPassword.findOne({ ID: userId });
+    static fetchUserPasswordFromDB(userId) {
+        return UserPassword.findOne({ ID: userId });
     }
 
-    static async updatePasswordInDB(userId, newPassword) {
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(newPassword, salt);
+    static updatePasswordInDB(userId, newPassword) {
+        const salt = bcrypt.genSalt(10);
+        const hashedPassword = bcrypt.hash(newPassword, salt);
 
-        const result = await UserPassword.updateOne(
+        const result = UserPassword.updateOne(
             { ID: userId },
             { encryptedPassword: hashedPassword }
         );
