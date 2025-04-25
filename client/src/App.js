@@ -14,7 +14,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
-        <Route path="/create-transaction" element={<TransactionForm />} />
+        <Route path="/transactions/new" element={<TransactionForm />} />
         <Route path="/transactions/history" element={<TransactionHistory />} />
         <Route path="/report" element={<ReportPage transactions={[]} accounts={[]} />} />
         <Route path="/reset-password" element={<ResetPassword />} />
