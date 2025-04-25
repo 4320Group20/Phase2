@@ -1,3 +1,4 @@
+const { v4: uuidv4 } = require('uuid');
 const NonAdminUser = require('../models/NonAdminUser');
 const Administrator = require('../models/Administrator');
 const UserPassword = require('../models/UserPassword');
@@ -7,91 +8,101 @@ const crypto = require('crypto');
 const registeredUsers = [];
 const passwords = [];
 
-const isUsernameTaken = (userName) => {
-    return passwords.some(pw => pw.userName === userName);
-};
+// Check username uniqueness
+const isUsernameTaken = (userName) =>
+    passwords.some(pw => pw.userName === userName);
 
-const encryptPassword = (password) => {
-    return new Promise((resolve, reject) => {
+// SHA-256 hash -> hex
+const encryptPassword = (password) =>
+    new Promise((resolve, reject) => {
         const hash = crypto.createHash('sha256');
         hash.update(password);
         resolve(hash.digest('hex'));
     });
-};
 
-exports.registerUser = (req, res) => {
-    const {
-        id,
-        name,
-        userName,
-        password,
-        role,
-        address,
-        email,
-        dateHired,
-        dateFinished,
-        passwordExpiryTime,
-        userAccountExpiryDate
-    } = req.body;
+/**
+ * POST /api/auth/signup
+ * Body: { name, userName, password, address, email }
+ */
+exports.registerUser = async (req, res) => {
+    const { name, userName, password, address, email } = req.body;
+
+    if (!name || !userName || !password || !address || !email) {
+        return res.status(400).json({ message: 'All fields are required.' });
+    }
 
     if (isUsernameTaken(userName)) {
-        return res.status(400).json({ message: 'Username already exists' });
+        return res.status(400).json({ message: 'Username already exists.' });
     }
 
     try {
-        const encryptedPassword = encryptPassword(password);
+        // 1) generate new user ID
+        const id = uuidv4();
 
-        const userPassword = new UserPassword(
+        // 2) hash password
+        const encryptedPassword = await encryptPassword(password);
+
+        // 3) store UserPassword record
+        const userPwRecord = new UserPassword(
             id,
             userName,
             encryptedPassword,
-            passwordExpiryTime,
-            new Date(userAccountExpiryDate)
+      /* passwordExpiryTime */ 90,                // default expiry (days)
+      /* userAccountExpiryDate */ new Date()      // default: now
         );
-        passwords.push(userPassword);
+        passwords.push(userPwRecord);
 
-        let newUser;
-        if (role === 'admin') {
-            newUser = new Administrator(id, name, dateHired, dateFinished);
-        } else {
-            newUser = new NonAdminUser(id, name, address, email);
-        }
-
+        // 4) create NonAdminUser (default role)
+        const newUser = new NonAdminUser(id, name, address, email);
         registeredUsers.push(newUser);
-        res.status(201).json(newUser);
-    } catch (error) {
-        res.status(500).json({ message: 'Error registering user', error });
+
+        return res.status(201).json({
+            message: 'User registered successfully.',
+            user: { id, name, userName, address, email }
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Internal server error.', error: err.message });
     }
 };
 
 /**
- * Validates the iFINANCE username and corresponding password.
- * Determines if the user is allowed to access the iFINANCE services.
+ * POST /api/auth/login
+ * Body: { userName, password }
  */
-exports.authenticate = (req, res) => {
-    const { username, password } = req.body;
+exports.authenticate = async (req, res) => {
+    const { userName, password } = req.body;
+
+    if (!userName || !password) {
+        return res.status(400).json({ message: 'Username and password required.' });
+    }
 
     try {
-        // Fetch user from the database by username
-        const userRecord = NonAdminUser.findOne({ username });
-
-        // Check if user exists
-        if (!userRecord) {
-            return res.status(401).json({ success: false, message: "User not found." });
+        // 1) find password record by userName
+        const pwRecord = passwords.find(pw => pw.userName === userName);
+        if (!pwRecord) {
+            return res.status(401).json({ message: 'Invalid username or password.' });
         }
 
-        // Compare plain-text passwords for now (implement hashed password comparison in real apps)
-        if (userRecord.password !== password) {
-            return res.status(401).json({ success: false, message: "Incorrect password." });
+        // 2) hash incoming password and compare
+        const hashedAttempt = await encryptPassword(password);
+        if (hashedAttempt !== pwRecord.encryptedPassword) {
+            return res.status(401).json({ message: 'Invalid username or password.' });
         }
 
-        // Authentication successful
-        return res.status(200).json({
-            success: true,
-            message: "Login successful.",
-            userId: userRecord._id
+        // 3) find the corresponding user (NonAdminUser only for now)
+        const user = registeredUsers.find(u => u.id === pwRecord.id);
+        if (!user) {
+            return res.status(500).json({ message: 'User record missing.' });
+        }
+
+        return res.json({
+            message: 'Login successful.',
+            userId: user.id,
+            name: user.name
         });
-    } catch (error) {
-        return res.status(500).json({ success: false, message: "Server error.", error });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Internal server error.', error: err.message });
     }
 };
