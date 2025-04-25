@@ -27,12 +27,12 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS accountcategory (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR(255) NOT NULL,
-    type VARCHAR(255) TEXT NOT NULL
+    type VARCHAR(255) NOT NULL
   );
 `);
 
 db.exec(`
-  CREATE TABLE IF NOT EXISTS group (
+  CREATE TABLE IF NOT EXISTS "group" (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR(255) NOT NULL
   );
@@ -48,7 +48,7 @@ db.exec(`
 `);
 
 db.exec(`
-  CREATE TABLE IF NOT EXISTS transaction (
+  CREATE TABLE IF NOT EXISTS "transaction" (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     date DATE NOT NULL,
     description VARCHAR(255) NOT NULL
