@@ -40,7 +40,7 @@ function TransactionForm() {
 
         if (!validate()) return;
 
-        //TODO: POST TO BACKEND
+        // TODO: POST TO BACKEND
     };
 
     const validate = () => {
@@ -51,6 +51,9 @@ function TransactionForm() {
         if (!transaction.description.trim()) newErrors.push('Transaction description is required.');
         if (transaction.lines.length === 0) newErrors.push('At least one transaction line is required.');
 
+        let totalDebited = 0;
+        let totalCredited = 0;
+
         transaction.lines.forEach((line, index) => {
             if (!line.id.trim()) newErrors.push(`Line ${index + 1}: ID is required.`);
             const credit = parseFloat(line.creditedAmount || 0);
@@ -58,7 +61,15 @@ function TransactionForm() {
             if (isNaN(credit) || credit < 0) newErrors.push(`Line ${index + 1}: Credited amount must be a non-negative number.`);
             if (isNaN(debit) || debit < 0) newErrors.push(`Line ${index + 1}: Debited amount must be a non-negative number.`);
             if (credit === 0 && debit === 0) newErrors.push(`Line ${index + 1}: Either credited or debited amount must be greater than 0.`);
+
+            totalDebited += debit;
+            totalCredited += credit;
         });
+
+        // Double-entry check: Total debited must equal total credited
+        if (totalDebited !== totalCredited) {
+            newErrors.push('Total debited amount must equal total credited amount for double-entry accounting.');
+        }
 
         setErrors(newErrors);
         return newErrors.length === 0;
