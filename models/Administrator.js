@@ -1,7 +1,7 @@
 const db = require('../db');
 
 module.exports = {
-    createAdministrator: async (adminData) => {
+    createAdministrator:(adminData) => {
         const query = db.prepare(`
             INSERT INTO administrators (id, name, dateHired, dateFinished)
             VALUES (?, ?, ?, ?)
@@ -15,17 +15,17 @@ module.exports = {
         return { id: adminData.id, ...adminData };
     },
 
-    getAllAdministrators: async () => {
+    getAllAdministrators: () => {
         const query = db.prepare(`SELECT * FROM administrators`);
         return query.all();
     },
 
-    getAdministratorById: async (id) => {
+    getAdministratorById: (id) => {
         const query = db.prepare(`SELECT * FROM administrators WHERE id = ?`);
         return query.get(id);
     },
 
-    updateAdministrator: async (id, newData) => {
+    updateAdministrator: (id, newData) => {
         const query = db.prepare(`
             UPDATE administrators
             SET name = ?, dateHired = ?, dateFinished = ?
@@ -40,7 +40,7 @@ module.exports = {
         return { id, ...newData };
     },
 
-    deleteAdministrator: async (id) => {
+    deleteAdministrator: (id) => {
         const query = db.prepare(`DELETE FROM administrators WHERE id = ?`);
         const result = query.run(id);
         return { deleted: result.changes > 0 };

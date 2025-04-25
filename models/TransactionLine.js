@@ -1,7 +1,7 @@
 const db = require('../db');
 
 module.exports = {
-    createTransactionLine: async (transactionLineData) => {
+    createTransactionLine: (transactionLineData) => {
         const query = db.prepare(`
             INSERT INTO transactionlines (
                 id, creditedAmount, debitedAmount, comments
@@ -17,17 +17,17 @@ module.exports = {
         return { id: transactionLineData.id, ...transactionLineData };
     },
 
-    getAllTransactionLines: async () => {
+    getAllTransactionLines: () => {
         const query = db.prepare(`SELECT * FROM transactionlines`);
         return query.all();
     },
 
-    getTransactionLineById: async (id) => {
+    getTransactionLineById: (id) => {
         const query = db.prepare(`SELECT * FROM transactionlines WHERE id = ?`);
         return query.get(id);
     },
 
-    updateTransactionLine: async (id, newData) => {
+    updateTransactionLine: (id, newData) => {
         const query = db.prepare(`
             UPDATE transactionlines
             SET creditedAmount = ?, debitedAmount = ?, comments = ?
@@ -42,7 +42,7 @@ module.exports = {
         return { id, ...newData };
     },
 
-    deleteTransactionLine: async (id) => {
+    deleteTransactionLine: (id) => {
         const query = db.prepare(`DELETE FROM transactionlines WHERE id = ?`);
         const result = query.run(id);
         return { deleted: result.changes > 0 };
