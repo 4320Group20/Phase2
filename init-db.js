@@ -6,15 +6,6 @@ console.log('Initializing DB...');
 
 // Initialize tables
 db.exec(`
-  CREATE TABLE IF NOT EXISTS administrator (
-    administrator_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name VARCHAR(255) NOT NULL,
-    date_hired DATE NOT NULL,
-    date_finished DATE
-  );
-`);
-
-db.exec(`
   CREATE TABLE IF NOT EXISTS accountcategory (
     accountcategory_id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR(255) NOT NULL,
@@ -71,7 +62,18 @@ db.exec(`
     address VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     userpassword_id INTEGER NOT NULL,
-    FOREIGN KEY (userpassword_id) REFERENCES userpassword(id) 
+    FOREIGN KEY (userpassword_id) REFERENCES userpassword(userpassword_id) 
+  );
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS administrator (
+    administrator_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR(255) NOT NULL,
+    date_hired DATE NOT NULL,
+    date_finished DATE
+    userpassword_id INTEGER NOT NULL,
+    FOREIGN KEY (userpassword_id) REFERENCES userpassword(userpassword_id)
   );
 `);
 
