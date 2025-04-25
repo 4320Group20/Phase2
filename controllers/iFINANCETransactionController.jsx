@@ -1,8 +1,8 @@
 
 
 
-import Transaction from '../models/Transaction.js';
-import TransactionLine from '../models/TransactionLine.js';
+import Transaction from '../models/Transaction.jsx';
+import TransactionLine from '../models/TransactionLine.jsx';
 
 // A control class to add, edit, and delete transactions
 class iFINANCETransactionController {

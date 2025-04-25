@@ -5,7 +5,7 @@ const nonAdminUserSchema = new mongoose.Schema({
     address: {type: String, required: true},
     email: { type: String, required: true}
 });
-const userModel = mongoose.model('nonadminuser', nonAdminUserSchema);
+const userModel = mongoose.model('NonAdminUser', nonAdminUserSchema, 'nonadminuser');
 
 module.exports = {
     createUser: async (userData) => {
