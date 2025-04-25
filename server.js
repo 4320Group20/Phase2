@@ -75,6 +75,28 @@ db.exec(`
   );
 `);
 
+// Transaction tables
+db.exec(`
+  CREATE TABLE "transaction" (
+    transaction_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    date TEXT NOT NULL,
+    description TEXT NOT NULL,
+    user_id INTEGER NOT NULL,
+    FOREIGN KEY(user_id) REFERENCES nonadminuser(nonadminuser_id) ON DELETE CASCADE
+  );
+`);
+
+db.exec(`
+  CREATE TABLE transactionline (
+    transactionline_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    transaction_id INTEGER NOT NULL,
+    credited_amount REAL NOT NULL,
+    debited_amount REAL NOT NULL,
+    comments TEXT,
+    FOREIGN KEY(transaction_id) REFERENCES "transaction"(transaction_id) ON DELETE CASCADE
+  );
+`);
+
 // Seed default admin if not present
 const adminExists = db
     .prepare('SELECT 1 FROM administrator WHERE username = ?')
@@ -280,6 +302,122 @@ app.post('/login', async (req, res) => {
         return res.status(500).json({ message: 'Internal server error.' });
     }
 });
+
+// --- TRANSACTIONS --- //
+app.post('/transactions', (req, res) => {
+    try {
+        const { date, description, userId, lines } = req.body;
+        if (!date || !description || !userId || !Array.isArray(lines) || !lines.length)
+            return res.status(400).json({ message: 'Invalid payload.' });
+        // Validate balanced
+        const sum = lines.reduce((a, l) => (a + (l.debitedAmount || 0) - (l.creditedAmount || 0)), 0);
+        if (sum !== 0)
+            return res.status(400).json({ message: 'Unbalanced transaction.' });
+        // Insert transaction
+        const t = db.prepare('INSERT INTO "transaction"(date,description,user_id)VALUES(?,?,?)')
+            .run(date, description, userId);
+        const tid = t.lastInsertRowid;
+        const ls = db.prepare('INSERT INTO transactionline(transaction_id,credited_amount,debited_amount,comments)VALUES(?,?,?,?)');
+        lines.forEach(l => ls.run(tid, l.creditedAmount || 0, l.debitedAmount || 0, l.comments || ''));
+        console.log('✅ Transaction successful for user', userId);
+        res.status(201).json({ transactionId: tid });
+    } catch (e) { console.error(e); res.status(500).json({ message: 'Server error.' }); }
+});
+
+// GET transactions (optionally filtered by userId)
+app.get('/transactions', (req, res) => {
+    try {
+        const userId = Number(req.query.userId);
+        // Fetch all transaction+lines, then group by transaction
+        const rows = db.prepare(`
+      SELECT
+        t.transaction_id AS id,
+        t.date,
+        t.description,
+        tl.transactionline_id AS lineId,
+        tl.credited_amount,
+        tl.debited_amount,
+        tl.comments
+      FROM "transaction" t
+      JOIN transactionline tl ON t.transaction_id = tl.transaction_id
+      WHERE t.user_id = ?
+    `).all(userId);
+
+        const txMap = {};
+        rows.forEach(r => {
+            if (!txMap[r.id]) {
+                txMap[r.id] = {
+                    id: r.id,
+                    date: r.date,
+                    description: r.description,
+                    lines: []
+                };
+            }
+            txMap[r.id].lines.push({
+                id: r.lineId,
+                creditedAmount: r.credited_amount,
+                debitedAmount: r.debited_amount,
+                comments: r.comments
+            });
+        });
+
+        return res.json({ transactions: Object.values(txMap) });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Internal server error.' });
+    }
+});
+
+// --- REPORT GENERATION --- //
+app.post('/report', (req, res) => {
+    try {
+        const { reportType, startDate, endDate, accountType, category } = req.body;
+        if (!reportType || !startDate || !endDate) {
+            return res.status(400).json({ message: 'reportType, startDate, and endDate are required.' });
+        }
+        // Pull all lines in the date range
+        const rows = db.prepare(`
+      SELECT t.transaction_id AS id,
+             t.date,
+             t.description,
+             tl.credited_amount AS credit,
+             tl.debited_amount  AS debit,
+             tl.comments        AS category_field
+      FROM "transaction" t
+      JOIN transactionline tl ON t.transaction_id = tl.transaction_id
+      WHERE date(t.date) BETWEEN date(?) AND date(?)
+    `).all(startDate, endDate);
+
+        // Summary report
+        if (reportType === 'summary') {
+            const totalDebit = rows.reduce((sum, r) => sum + r.debit, 0);
+            const totalCredit = rows.reduce((sum, r) => sum + r.credit, 0);
+            return res.json({ reportType, startDate, endDate, totalDebit, totalCredit });
+        }
+
+        // Grouped report
+        const data = {};
+        rows.forEach(r => {
+            let key;
+            if (reportType === 'byAccount') {
+                key = r.category_field === accountType ? accountType : 'Other';
+            } else { // byCategory
+                if (category && r.category_field !== category) return;
+                key = r.category_field;
+            }
+            if (!data[key]) data[key] = { totalDebit: 0, totalCredit: 0 };
+            data[key].totalDebit += r.debit;
+            data[key].totalCredit += r.credit;
+        });
+
+        return res.json({ reportType, startDate, endDate, data });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Server error.' });
+    }
+});
+
+
 
 // 7) Start server
 const PORT = 5000;

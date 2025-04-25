@@ -34,13 +34,31 @@ function TransactionForm() {
         setTransaction({ ...transaction, lines: updatedLines });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Submitting Transaction:', transaction);
-
         if (!validate()) return;
 
-        // TODO: POST TO BACKEND
+        try {
+            const userId = localStorage.getItem('userId');
+            const res = await fetch('http://localhost:5000/transactions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    date: transaction.date,
+                    description: transaction.description,
+                    userId: Number(userId),
+                    lines: transaction.lines.map(l => ({
+                        creditedAmount: parseFloat(l.creditedAmount) || 0,
+                        debitedAmount: parseFloat(l.debitedAmount) || 0,
+                        comments: l.comments || ''
+                    }))
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || 'Failed to submit transaction');
+        } catch (err) {
+            setErrors([err.message]);
+        }
     };
 
     const validate = () => {
