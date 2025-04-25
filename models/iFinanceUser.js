@@ -1,43 +1,38 @@
-const mongoose = require('mongoose');
-
-// Create a schema for the iFinanceUser model
-const iFinanceUserSchema = new mongoose.Schema({
-    // The ID attribute is the primary key for the iFINANCE user
-    // Type String
-    id: { type: String, required: true },
-
-    // The name attribute stores the full name of the iFINANCE user
-    // Type String
-    name: { type: String, required: true }
-});
-
-// Create the Mongoose model for iFinanceUser
-const iFinanceUserModel = mongoose.model('iFinanceUser', iFinanceUserSchema, 'ifinanceusers');
+const db = require('../db');
 
 module.exports = {
-    // Method to create a new iFinanceUser
     createUser: async (userData) => {
-        const user = new iFinanceUserModel(userData);
-        return await user.save();
+        const query = db.prepare(`
+            INSERT INTO ifinanceusers (id, name)
+            VALUES (?, ?)
+        `);
+        const result = query.run(userData.id, userData.name);
+        return { id: userData.id, ...userData };
     },
 
-    // Method to retrieve all users
     getAllUsers: async () => {
-        return await iFinanceUserModel.find();
+        const query = db.prepare(`SELECT * FROM ifinanceusers`);
+        return query.all();
     },
 
-    // Method to retrieve a specific user by ID
     getUserById: async (id) => {
-        return await iFinanceUserModel.findById(id);
+        const query = db.prepare(`SELECT * FROM ifinanceusers WHERE id = ?`);
+        return query.get(id);
     },
 
-    // Method to update an existing user by ID
     updateUser: async (id, newData) => {
-        return await iFinanceUserModel.findByIdAndUpdate(id, newData, { new: true });
+        const query = db.prepare(`
+            UPDATE ifinanceusers
+            SET name = ?
+            WHERE id = ?
+        `);
+        query.run(newData.name, id);
+        return { id, ...newData };
     },
 
-    // Method to delete a user by ID
     deleteUser: async (id) => {
-        return await iFinanceUserModel.findByIdAndDelete(id);
+        const query = db.prepare(`DELETE FROM ifinanceusers WHERE id = ?`);
+        const result = query.run(id);
+        return { deleted: result.changes > 0 };
     }
 };

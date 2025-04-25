@@ -1,51 +1,50 @@
-const mongoose = require('mongoose');
-
-// Create a schema for the MasterAccount model
-const masterAccountSchema = new mongoose.Schema({
-    // The primary key of the master account class
-    // Type String
-    id: { type: String, required: true },
-
-    // The name attribute stores the full name of the master account
-    // Type String
-    name: { type: String, required: true },
-
-    // The openingAmount stores the balance brought forward at the start of an accounting period
-    // Type Number (to handle decimal values)
-    openingAmount: { type: Number, required: true },
-
-    // The closingAmount stores the remaining balance at the end of the accounting period
-    // Type Number (to handle decimal values)
-    closingAmount: { type: Number, required: true }
-});
-
-// Create the Mongoose model for MasterAccount
-const masterAccountModel = mongoose.model('MasterAccount', masterAccountSchema, 'masteraccounts');
+const db = require('../db');
 
 module.exports = {
-    // Method to create a new MasterAccount
     createMasterAccount: async (accountData) => {
-        const account = new masterAccountModel(accountData);
-        return await account.save();
+        const query = db.prepare(`
+            INSERT INTO masteraccounts (
+                id, name, openingAmount, closingAmount
+            )
+            VALUES (?, ?, ?, ?)
+        `);
+        const result = query.run(
+            accountData.id,
+            accountData.name,
+            accountData.openingAmount,
+            accountData.closingAmount
+        );
+        return { id: accountData.id, ...accountData };
     },
 
-    // Method to retrieve all master accounts
     getAllMasterAccounts: async () => {
-        return await masterAccountModel.find();
+        const query = db.prepare(`SELECT * FROM masteraccounts`);
+        return query.all();
     },
 
-    // Method to retrieve a specific master account by ID
     getMasterAccountById: async (id) => {
-        return await masterAccountModel.findById(id);
+        const query = db.prepare(`SELECT * FROM masteraccounts WHERE id = ?`);
+        return query.get(id);
     },
 
-    // Method to update an existing master account by ID
     updateMasterAccount: async (id, newData) => {
-        return await masterAccountModel.findByIdAndUpdate(id, newData, { new: true });
+        const query = db.prepare(`
+            UPDATE masteraccounts
+            SET name = ?, openingAmount = ?, closingAmount = ?
+            WHERE id = ?
+        `);
+        query.run(
+            newData.name,
+            newData.openingAmount,
+            newData.closingAmount,
+            id
+        );
+        return { id, ...newData };
     },
 
-    // Method to delete a master account by ID
     deleteMasterAccount: async (id) => {
-        return await masterAccountModel.findByIdAndDelete(id);
+        const query = db.prepare(`DELETE FROM masteraccounts WHERE id = ?`);
+        const result = query.run(id);
+        return { deleted: result.changes > 0 };
     }
 };

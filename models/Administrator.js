@@ -1,48 +1,48 @@
-const mongoose = require('mongoose');
-const iFinanceUser = require('./iFinanceUser'); // Assuming this is another model file
-
-// Create a schema for Administrator that extends iFinanceUser attributes
-const administratorSchema = new mongoose.Schema({
-    // Inherits from iFinanceUser
-    id: { type: String, required: true },
-    name: { type: String, required: true },
-
-    // The date when the system administrator is hired by iFINANCE
-    // Type Date
-    dateHired: { type: Date, required: true },
-
-    // The date when the system administrator left iFINANCE
-    // Type Date
-    dateFinished: { type: Date, required: true }
-});
-
-// Create the Mongoose model for Administrator
-const administratorModel = mongoose.model('Administrator', administratorSchema, 'administrators');
+const db = require('../db');
 
 module.exports = {
-    // Method to create a new Administrator
     createAdministrator: async (adminData) => {
-        const admin = new administratorModel(adminData);
-        return await admin.save();
+        const query = db.prepare(`
+            INSERT INTO administrators (id, name, dateHired, dateFinished)
+            VALUES (?, ?, ?, ?)
+        `);
+        query.run(
+            adminData.id,
+            adminData.name,
+            adminData.dateHired,
+            adminData.dateFinished
+        );
+        return { id: adminData.id, ...adminData };
     },
 
-    // Method to retrieve all Administrators
     getAllAdministrators: async () => {
-        return await administratorModel.find();
+        const query = db.prepare(`SELECT * FROM administrators`);
+        return query.all();
     },
 
-    // Method to retrieve a specific Administrator by ID
     getAdministratorById: async (id) => {
-        return await administratorModel.findById(id);
+        const query = db.prepare(`SELECT * FROM administrators WHERE id = ?`);
+        return query.get(id);
     },
 
-    // Method to update an existing Administrator by ID
     updateAdministrator: async (id, newData) => {
-        return await administratorModel.findByIdAndUpdate(id, newData, { new: true });
+        const query = db.prepare(`
+            UPDATE administrators
+            SET name = ?, dateHired = ?, dateFinished = ?
+            WHERE id = ?
+        `);
+        query.run(
+            newData.name,
+            newData.dateHired,
+            newData.dateFinished,
+            id
+        );
+        return { id, ...newData };
     },
 
-    // Method to delete an Administrator by ID
     deleteAdministrator: async (id) => {
-        return await administratorModel.findByIdAndDelete(id);
+        const query = db.prepare(`DELETE FROM administrators WHERE id = ?`);
+        const result = query.run(id);
+        return { deleted: result.changes > 0 };
     }
 };
