@@ -14,6 +14,7 @@ const Home = () => {
                     <li><Link to="/signin">Sign In / Create Account</Link></li>
                     <li><Link to="/transactions/new">Create Transaction</Link></li>
                     <li><Link to="/transactions/history">View Transaction History</Link></li>
+                    <li><Link to="/report">View Financial Report</Link></li>
                 </ul>
             </nav>
 
