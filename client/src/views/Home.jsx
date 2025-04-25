@@ -27,7 +27,7 @@ const Home = () => {
                             <Link to="/report" style={styles.linkButton}>View Financial Report</Link>
                         </li>
                         <li>
-                            <Link to="/account-groups">Go to Accounts Groups</Link>
+                            <Link to="/account-groups" style={styles.linkButton}>Go to Accounts Groups</Link>
                         </li>
                     </ul>
                 </nav>
