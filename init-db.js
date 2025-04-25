@@ -6,50 +6,41 @@ console.log('Initializing DB...');
 
 // Initialize tables
 db.exec(`
-  CREATE TABLE IF NOT EXISTS nonadminuser (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name VARCHAR(255) NOT NULL,
-    address VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL UNIQUE
-  );
-`);
-
-db.exec(`
   CREATE TABLE IF NOT EXISTS administrator (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    administrator_id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR(255) NOT NULL,
-    datehired DATE NOT NULL,
-    datefinished DATE
+    date_hired DATE NOT NULL,
+    date_finished DATE
   );
 `);
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS accountcategory (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    accountcategory_id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR(255) NOT NULL,
-    type VARCHAR(255) TEXT NOT NULL
+    type VARCHAR(255) NOT NULL
   );
 `);
 
 db.exec(`
-  CREATE TABLE IF NOT EXISTS group (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+  CREATE TABLE IF NOT EXISTS "group" (
+    group_id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR(255) NOT NULL
   );
 `);
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS masteraccount (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    masteraccount_id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR(255) NOT NULL,
-    openingamount DOUBLE NOT NULL,
-    closingamount DOUBLE
+    opening_amount DOUBLE NOT NULL,
+    closing_amount DOUBLE
   );
 `);
 
 db.exec(`
-  CREATE TABLE IF NOT EXISTS transaction (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+  CREATE TABLE IF NOT EXISTS "transaction" (
+    transaction_id INTEGER PRIMARY KEY AUTOINCREMENT,
     date DATE NOT NULL,
     description VARCHAR(255) NOT NULL
   );
@@ -57,19 +48,30 @@ db.exec(`
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS transactionline (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    creditedamount DOUBLE NOT NULL,
-    debitedamount DOUBLE NOT NULL,
+    transactionline_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    credited_amount DOUBLE NOT NULL,
+    debited_amount DOUBLE NOT NULL,
     comments VARCHAR(255) NOT NULL
   );
 `);
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS userpassword (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    encryptedpassword VARCHAR(255) NOT NULL,
-    passwordexpirytime INT NOT NULL,
-    useraccountexpirydate DATE NOT NULL
+    userpassword_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    encrypted_password VARCHAR(255) NOT NULL,
+    password_expiry_time INT NOT NULL,
+    user_account_expiry_date DATE NOT NULL
+  );
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS nonadminuser (
+    nonadminuser_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR(255) NOT NULL,
+    address VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    userpassword_id INTEGER NOT NULL,
+    FOREIGN KEY (userpassword_id) REFERENCES userpassword(id) 
   );
 `);
 
