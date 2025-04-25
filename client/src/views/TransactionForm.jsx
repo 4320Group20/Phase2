@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import TransactionLineInput from '../components/TransactionLineInput';
+import { Link } from 'react-router-dom'; // Import for navigation using Link
 
 function TransactionForm() {
     const [transaction, setTransaction] = useState({
@@ -64,36 +65,39 @@ function TransactionForm() {
     };
 
     return (
-        <div>
-            <h2>Create New Transaction</h2>
+        <div style={styles.container}>
+            <h2 style={styles.title}>Create New Transaction</h2>
             {errors.length > 0 && (
-                <div style={{ color: 'red' }}>
+                <div style={styles.errorContainer}>
                     <h4>Please fix the following errors:</h4>
                     <ul>
-                        {errors.map((err, idx) => <li key={idx}>{err}</li>)}
+                        {errors.map((err, idx) => <ul key={idx}>{err}</ul>)}
                     </ul>
                 </div>
             )}
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} style={styles.form}>
                 <input
                     type="text"
                     placeholder="Transaction ID"
                     value={transaction.id}
                     onChange={(e) => handleChange('id', e.target.value)}
+                    style={styles.input}
                 />
                 <input
                     type="datetime-local"
                     value={transaction.date}
                     onChange={(e) => handleChange('date', e.target.value)}
+                    style={styles.input}
                 />
                 <input
                     type="text"
                     placeholder="Description"
                     value={transaction.description}
                     onChange={(e) => handleChange('description', e.target.value)}
+                    style={styles.input}
                 />
 
-                <h3>Transaction Lines</h3>
+                <h3 style={styles.subTitle}>Transaction Lines</h3>
                 {transaction.lines.map((line, index) => (
                     <TransactionLineInput
                         key={index}
@@ -103,12 +107,83 @@ function TransactionForm() {
                         onRemove={removeLine}
                     />
                 ))}
-                <button type="button" onClick={addLine}>Add Transaction Line</button>
+                <button type="button" onClick={addLine} style={styles.addLineButton}>Add Transaction Line</button>
                 <br /><br />
-                <button type="submit">Submit Transaction</button>
+                <button type="submit" style={styles.submitButton}>Submit Transaction</button>
             </form>
+
+            <Link to="/" style={styles.returnButton}>Return to Home Screen</Link>
         </div>
     );
 }
+
+const styles = {
+    container: {
+        padding: '2rem',
+        maxWidth: '800px',
+        margin: '0 auto',
+        backgroundColor: 'rgba(255, 255, 255, 0.85)',
+        borderRadius: '12px',
+        boxShadow: '0 6px 18px rgba(0, 0, 0, 0.1)',
+        textAlign: 'center',
+    },
+    title: {
+        fontSize: '2.5rem',
+        fontWeight: 'bold',
+        color: '#2e3b4e',
+        marginBottom: '2rem',
+    },
+    subTitle: {
+        fontSize: '1.5rem',
+        color: '#2e3b4e',
+        marginTop: '1.5rem',
+    },
+    form: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '1rem',
+    },
+    input: {
+        width: '100%',
+        padding: '1rem',
+        fontSize: '1rem',
+        marginBottom: '1rem',
+        borderRadius: '8px',
+        border: '1px solid #ccc',
+    },
+    addLineButton: {
+        backgroundColor: '#007bff',
+        color: '#fff',
+        padding: '0.75rem 1.5rem',
+        borderRadius: '8px',
+        fontSize: '1rem',
+        cursor: 'pointer',
+    },
+    submitButton: {
+        backgroundColor: '#28a745',
+        color: '#fff',
+        padding: '0.75rem 1.5rem',
+        borderRadius: '8px',
+        fontSize: '1.2rem',
+        cursor: 'pointer',
+    },
+    errorContainer: {
+        color: 'red',
+        marginBottom: '1rem',
+    },
+    returnButton: {
+        backgroundColor: '#f0ad4e',
+        color: '#fff',
+        padding: '0.75rem 1.5rem',
+        borderRadius: '8px',
+        border: '2px solid #000000',
+        fontSize: '1rem',
+        cursor: 'pointer',
+        marginTop: '1rem',
+        textDecoration: 'none', // Make sure the Link doesn't have underline
+        display: 'inline-block',
+    }
+};
 
 export default TransactionForm;
