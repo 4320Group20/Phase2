@@ -37,7 +37,7 @@ module.exports = {
     },
 
     // Look up the user record by username
-    getUserByUsername: async (username) => {
+    getUserByUsername: (username) => {
         const q = db.prepare(`SELECT * FROM nonadminuser WHERE username = ?`);
         return q.get(username);
     },
