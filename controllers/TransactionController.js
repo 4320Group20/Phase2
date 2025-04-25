@@ -72,14 +72,3 @@ exports.deleteTransaction = (req, res) => {
     const removed = transactions.splice(index, 1)[0];
     res.json(removed);
 };
-
-// Optional helper for external use or testing
-exports.determineEffect = (accountType, isDebit) => {
-    const effects = {
-        Assets: isDebit ? 'Increase' : 'Decrease',
-        Expenses: isDebit ? 'Increase' : 'Decrease',
-        Liabilities: isDebit ? 'Decrease' : 'Increase',
-        Income: isDebit ? 'Decrease' : 'Increase',
-    };
-    return effects[accountType] || 'Unknown';
-};
