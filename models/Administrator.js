@@ -1,0 +1,48 @@
+const db = require('../db');
+
+module.exports = {
+    createAdministrator: async (adminData) => {
+        const query = db.prepare(`
+            INSERT INTO administrators (id, name, dateHired, dateFinished)
+            VALUES (?, ?, ?, ?)
+        `);
+        query.run(
+            adminData.id,
+            adminData.name,
+            adminData.dateHired,
+            adminData.dateFinished
+        );
+        return { id: adminData.id, ...adminData };
+    },
+
+    getAllAdministrators: async () => {
+        const query = db.prepare(`SELECT * FROM administrators`);
+        return query.all();
+    },
+
+    getAdministratorById: async (id) => {
+        const query = db.prepare(`SELECT * FROM administrators WHERE id = ?`);
+        return query.get(id);
+    },
+
+    updateAdministrator: async (id, newData) => {
+        const query = db.prepare(`
+            UPDATE administrators
+            SET name = ?, dateHired = ?, dateFinished = ?
+            WHERE id = ?
+        `);
+        query.run(
+            newData.name,
+            newData.dateHired,
+            newData.dateFinished,
+            id
+        );
+        return { id, ...newData };
+    },
+
+    deleteAdministrator: async (id) => {
+        const query = db.prepare(`DELETE FROM administrators WHERE id = ?`);
+        const result = query.run(id);
+        return { deleted: result.changes > 0 };
+    }
+};
