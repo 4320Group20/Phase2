@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import bgImage from '../assets/webBackground.webp';
 
@@ -19,33 +19,23 @@ const SignUp = () => {
   }, []);
 
   const handleSignUp = async (e) => {
-    e.preventDefault();
-    setError(null);
+      const res = await fetch('http://localhost:5000/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, username, address, email, password })
+      });
 
-    if (password !== confirmPassword) {
-      setError("Passwords don't match");
-      return;
-    }
+      const text = await res.text();
+      console.log(' /register raw response text:', text);
+      let data;
+      try {
+          data = JSON.parse(text);
+      } catch (e) {
+          console.error(' /register didn’t return JSON:', e);
+          throw new Error('Invalid JSON from server—see console.');
+      }
+      console.log(' /register parsed JSON:', data);
 
-    const userData = {
-      name: name,
-      username: username,
-      password: password,
-      address: address,
-      email: email
-    }
-    const response = await fetch('http://localhost:5000/api/users/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(userData)
-    });
-    const result = await response.json();
-    console.log(result);
-
-    // mock success
-    // navigate('/signin');
   };
 
   const handleBack = () => navigate('/signin');

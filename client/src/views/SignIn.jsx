@@ -15,18 +15,46 @@ const SignIn = () => {
   }, []);
 
   const handleLogin = async (e) => {
-    e.preventDefault();
-    setError(null);
-    try {
-      const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-      if (!res.ok) throw new Error('Invalid credentials');
-    } catch (err) {
-      setError(err.message);
-    }
+      e.preventDefault();
+      setError(null);
+
+      try {
+          console.log('About to POST /login with', { username, password });
+          const res = await fetch('http://localhost:5000/login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ username, password })
+          });
+
+          console.log(' Response status:', res.status);
+          console.log(' Response content-type:', res.headers.get('content-type'));
+
+          // Grab raw text so we can inspect it
+          const text = await res.text();
+          console.log(' Raw response text:', text);
+
+          // Now try to parse it
+          let data;
+          try {
+              data = JSON.parse(text);
+              console.log(' Parsed JSON:', data);
+          } catch (err) {
+              console.error(' JSON.parse failed:', err);
+              throw new Error('Server didn’t return valid JSON. See console for raw text.');
+          }
+
+          if (!res.ok) {
+              throw new Error(data.message || 'Login failed');
+          }
+
+          // Success! Store & redirect
+          localStorage.setItem('userId', data.userId);
+          localStorage.setItem('userName', data.name);
+          navigate('/');
+      } catch (err) {
+          console.error('handleSignIn error:', err);
+          setError(err.message);
+      }
   };
 
     const handleCreateAccount = () => navigate('/signup');

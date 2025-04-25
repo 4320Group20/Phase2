@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import bgImage from '../assets/webBackground.webp';
 
 const Home = () => {
+    const name = localStorage.getItem('userName');
     return (
         <div style={styles.page}>
             <div style={styles.formWrapper}>
@@ -14,7 +15,11 @@ const Home = () => {
                 {/* Main Content */}
                 <h1 style={styles.title}>iFINANCE App</h1>
                 <h2 style={styles.subtitle}>Welcome to the iFINANCE Management System</h2>
-
+                <h3>
+                    {name
+                        ? `Welcome, ${name}!`
+                        : `Welcome!`}
+                </h3>
                 <nav>
                     <ul style={{ listStyleType: 'none', padding: 0 }}>
                         <li>

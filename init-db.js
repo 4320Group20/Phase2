@@ -34,6 +34,11 @@ db.exec(`
 `);
 
 db.exec(`
+    
+  PRAGMA foreign_keys = OFF;
+  DROP TABLE IF EXISTS nonadminuser;
+  PRAGMA foreign_keys = ON;
+
   CREATE TABLE IF NOT EXISTS nonadminuser (
     nonadminuser_id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR(255) NOT NULL,
