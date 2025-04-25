@@ -3,6 +3,7 @@ const express = require('express');
 const userRoutes = require('./routes/UserRoutes');
 const transactionRoutes = require('./routes/TransactionRoutes');
 const reportRoutes = require('./routes/ReportRoutes');
+const groupRoutes = require('./routes/GroupRoutes');
 const app = express();
 
 // Routes and Parsing
@@ -10,6 +11,7 @@ app.use(express.json());
 app.use('/api/users', userRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/groups', groupRoutes);
 
 // Serve static files
 app.use(express.static(path.join(__dirname, 'client', 'build')));
