@@ -7,6 +7,7 @@ import SignUp from './views/SignUp';
 import ReportPage from './views/ReportPage';
 import ResetPassword from './views/ResetPassword';
 import AccountGroupsView from './views/AccountGroupsView';
+import ChartOfAccountsView from './views/ChartOfAccountsView';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Route path="/report" element={<ReportPage transactions={[]} accounts={[]} />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/account-groups" element={<AccountGroupsView />} />
+        <Route path="/chart-of-accounts" element={<ChartOfAccountsView />} />
       </Routes>
     </Router>
   );

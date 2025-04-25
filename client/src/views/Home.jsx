@@ -29,6 +29,9 @@ const Home = () => {
                         <li>
                             <Link to="/account-groups" style={styles.linkButton}>Go to Accounts Groups</Link>
                         </li>
+                        <li>
+                            <Link to="/chart-of-accounts" style={styles.linkButton}>Go to Chart of Accounts</Link>
+                        </li>
                     </ul>
                 </nav>
             </div>
