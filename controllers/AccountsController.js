@@ -1,15 +1,15 @@
 const MasterAccount = require('../models/MasterAccount');
 
-const getAllMasterAccounts = async (req, res) => {
+exports.getAllMasterAccounts = (req, res) => {
     try {
-        const accounts = await MasterAccount.find();
+        const accounts = MasterAccount.find();
         res.json(accounts);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 };
 
-const addMasterAccount = async (req, res) => {
+exports.addMasterAccount = (req, res) => {
     const { name, openingAmount, closingAmount } = req.body;
 
     try {
@@ -19,19 +19,19 @@ const addMasterAccount = async (req, res) => {
             closingAmount
         });
 
-        await newAccount.save();
+        newAccount.save();
         res.status(201).json(newAccount);
     } catch (err) {
         res.status(400).json({ message: err.message });
     }
 };
 
-const editMasterAccount = async (req, res) => {
+exports.editMasterAccount = (req, res) => {
     const { id } = req.params;
     const updates = req.body;
 
     try {
-        const updated = await MasterAccount.findByIdAndUpdate(id, updates, { new: true });
+        const updated = MasterAccount.findByIdAndUpdate(id, updates, { new: true });
         if (!updated) return res.status(404).json({ message: "Account not found" });
 
         res.json(updated);
@@ -40,22 +40,15 @@ const editMasterAccount = async (req, res) => {
     }
 };
 
-const deleteMasterAccount = async (req, res) => {
+exports.deleteMasterAccount = (req, res) => {
     const { id } = req.params;
 
     try {
-        const deleted = await MasterAccount.findByIdAndDelete(id);
+        const deleted = MasterAccount.findByIdAndDelete(id);
         if (!deleted) return res.status(404).json({ message: "Account not found" });
 
         res.json({ message: "Account deleted", account: deleted });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
-};
-
-module.exports = {
-    getAllMasterAccounts,
-    addMasterAccount,
-    editMasterAccount,
-    deleteMasterAccount
 };
