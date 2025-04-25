@@ -8,7 +8,7 @@
     "dev": "concurrently \"npm run server\" \"npm run client\""
   },
   "dependencies": {
-    "mongodb": "^6.16.0",
-    "mongoose": "^8.13.3"
+    "better-sqlite3": "^11.9.1",
+    "express": "^5.1.0"
   }
 }

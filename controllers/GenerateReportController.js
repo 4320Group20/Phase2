@@ -1,4 +1,3 @@
-// generateReportController.js
 const generateReportController = (transactions, accounts) => {
     const filterTransactions = (criteria) => {
         return transactions.filter(t => {
