@@ -1,4 +1,3 @@
-const { v4: uuidv4 } = require('uuid');
 const NonAdminUser = require('../models/NonAdminUser');
 const Administrator = require('../models/Administrator');
 const UserPassword = require('../models/UserPassword');
@@ -36,15 +35,11 @@ exports.registerUser = (req, res) => {
     }
 
     try {
-        // 1) generate new user ID
-        const id = uuidv4();
-
         // 2) hash password
         const encryptedPassword = encryptPassword(password);
 
         // 3) store UserPassword record
         const userPwRecord = new UserPassword(
-            id,
             userName,
             encryptedPassword,
       /* passwordExpiryTime */ 90,                // default expiry (days)
@@ -53,8 +48,9 @@ exports.registerUser = (req, res) => {
         passwords.push(userPwRecord);
 
         // 4) create NonAdminUser (default role)
-        const newUser = new NonAdminUser(id, name, address, email);
+        const newUser = new NonAdminUser(name, address, email);
         registeredUsers.push(newUser);
+        const id = 2; // TODO: FIX THIS
 
         return res.status(201).json({
             message: 'User registered successfully.',
