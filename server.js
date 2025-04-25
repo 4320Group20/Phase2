@@ -1,4 +1,5 @@
 ﻿// 1) Imports
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
@@ -17,104 +18,159 @@ app.use((req, res, next) => {
     next();
 });
 
-// 5) Database setup
-const db = new Database('./database.db');
-console.log('Initializing DB...');
+// 5) Database initialization
+// Ensure we always use the DB file relative to this script, regardless of CWD
+const dbPath = path.join(__dirname, 'database.db');
+const db = new Database(dbPath);
+
+
+// -- Drop and recreate tables for dev environment to ensure correct schema --
+// (Remove these drops in production to preserve data!)
+// right after you open your db:
+db.exec('PRAGMA foreign_keys = OFF;');
+
+// drop every table in your old schema:
+db.exec('DROP TABLE IF EXISTS transactionline;');
+db.exec('DROP TABLE IF EXISTS "transaction";');
+db.exec('DROP TABLE IF EXISTS accountcategory;');
+db.exec('DROP TABLE IF EXISTS "group";');
+db.exec('DROP TABLE IF EXISTS masteraccount;');
+db.exec('DROP TABLE IF EXISTS nonadminuser;');
+db.exec('DROP TABLE IF EXISTS userpassword;');
+db.exec('DROP TABLE IF EXISTS administrator;');
+
+db.exec('PRAGMA foreign_keys = ON;');
+
 
 // Creating tables
+// Create userpassword table
 db.exec(`
-  CREATE TABLE IF NOT EXISTS masteraccount (
-    masteraccount_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name VARCHAR(255) NOT NULL,
-    opening_amount DOUBLE NOT NULL,
-    closing_amount DOUBLE
-  );
-`);
-
-db.exec(`
-  CREATE TABLE IF NOT EXISTS "group" (
-    group_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name VARCHAR(255) NOT NULL,
-    parent_masteraccount_id INTEGER NOT NULL,
-    parent_group_id INTEGER NOT NULL,
-    FOREIGN KEY (parent_masteraccount_id) REFERENCES masteraccount(masteraccount_id),
-    FOREIGN KEY (parent_group_id) REFERENCES "group"(group_id)
-  );
-`);
-
-db.exec(`
-  CREATE TABLE IF NOT EXISTS userpassword (
+  CREATE TABLE userpassword (
     userpassword_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    encrypted_password VARCHAR(255) NOT NULL,
-    password_expiry_time INT NOT NULL,
-    user_account_expiry_date DATE NOT NULL
+    encrypted_password TEXT NOT NULL,
+    password_expiry_time INTEGER NOT NULL,
+    user_account_expiry_date TEXT NOT NULL
   );
 `);
 
+// Create nonadminuser table
 db.exec(`
-    
-  PRAGMA foreign_keys = OFF;
-  DROP TABLE IF EXISTS nonadminuser;
-  PRAGMA foreign_keys = ON;
-
-  CREATE TABLE IF NOT EXISTS nonadminuser (
+  CREATE TABLE nonadminuser (
     nonadminuser_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name VARCHAR(255) NOT NULL,
-    username VARCHAR(255) NOT NULL UNIQUE,
-    address VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL UNIQUE,
+    name TEXT NOT NULL,
+    username TEXT NOT NULL UNIQUE,
+    address TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE,
     userpassword_id INTEGER NOT NULL,
-    FOREIGN KEY (userpassword_id) REFERENCES userpassword(userpassword_id)
+    FOREIGN KEY(userpassword_id) REFERENCES userpassword(userpassword_id) ON DELETE CASCADE
   );
 `);
 
+// Create administrator table
 db.exec(`
-  CREATE TABLE IF NOT EXISTS administrator (
+  CREATE TABLE administrator (
     administrator_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name VARCHAR(255) NOT NULL,
-    date_hired DATE NOT NULL,
-    date_finished DATE,
-    userpassword_id INTEGER NOT NULL,
-    FOREIGN KEY (userpassword_id) REFERENCES userpassword(userpassword_id)
+    username TEXT NOT NULL UNIQUE,
+    encrypted_password TEXT NOT NULL
   );
 `);
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS accountcategory (
-    accountcategory_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name VARCHAR(255) NOT NULL,
-    type VARCHAR(255) NOT NULL,
-    group_id INTEGER NOT NULL,
-    FOREIGN KEY (group_id) REFERENCES "group"(group_id)
-  );
-`);
+// Seed default admin if not present
+const adminExists = db
+    .prepare('SELECT 1 FROM administrator WHERE username = ?')
+    .get('admin');
+if (!adminExists) {
+    const hash = bcrypt.hashSync('admin123', 10);
+    db.prepare(
+        'INSERT INTO administrator (username, encrypted_password) VALUES (?, ?)'
+    ).run('admin', hash);
+    console.log('✅ Default admin created: username=admin, password=admin123');
+}
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS "transaction" (
-    transaction_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    date DATE NOT NULL,
-    description VARCHAR(255) NOT NULL,
-    user_id INTEGER NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES nonadminuser(nonadminuser_id)
-  );
-`);
-
-db.exec(`
-  CREATE TABLE IF NOT EXISTS transactionline (
-    transactionline_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    credited_amount DOUBLE NOT NULL,
-    debited_amount DOUBLE NOT NULL,
-    comments VARCHAR(255) NOT NULL,
-    transaction_id INTEGER NOT NULL,
-    first_masteraccount_id INTEGER NOT NULL,
-    second_masteraccount_id INTEGER NOT NULL,
-    FOREIGN KEY (transaction_id) REFERENCES "transaction"(transaction_id),
-    FOREIGN KEY (first_masteraccount_id) REFERENCES masteraccount(masteraccount_id),
-    FOREIGN KEY (second_masteraccount_id) REFERENCES masteraccount(masteraccount_id)
-  );
-`);
+// Seed default non-admin users if none exist
+const userCount = db.prepare('SELECT COUNT(*) as count FROM nonadminuser').get().count;
+if (userCount === 0) {
+    const defaultUsers = [
+        { name: 'Alice Smith', username: 'alice', address: '123 Maple St', email: 'alice@example.com', password: 'alicepw' },
+        { name: 'Bob Jones', username: 'bob', address: '456 Oak Ave', email: 'bob@example.com', password: 'bobpw' }
+    ];
+    defaultUsers.forEach(u => {
+        const hash = bcrypt.hashSync(u.password, 10);
+        const now = Math.floor(Date.now() / 1000);
+        const expiryTime = now + 60 * 60 * 24 * 90;
+        const accountExpiry = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        const pwInfo = db.prepare(
+            `INSERT INTO userpassword (encrypted_password, password_expiry_time, user_account_expiry_date)
+       VALUES (?, ?, ?)`
+        ).run(hash, expiryTime, accountExpiry);
+        db.prepare(
+            `INSERT INTO nonadminuser (name, username, address, email, userpassword_id)
+       VALUES (?, ?, ?, ?, ?)`
+        ).run(u.name, u.username, u.address, u.email, pwInfo.lastInsertRowid);
+    });
+    console.log('✅ Seeded default non-admin users');
+}
 
 console.log('DB Successfully initialized');
+
+// Admin: fetch all users
+app.get('/admin/users', (req, res) => {
+    try {
+        const users = db.prepare(
+            `SELECT nu.nonadminuser_id AS id,
+              nu.name,
+              nu.username,
+              nu.address,
+              nu.email,
+              up.encrypted_password
+       FROM nonadminuser nu
+       JOIN userpassword up ON nu.userpassword_id = up.userpassword_id`
+        ).all();
+        return res.json({ users });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Internal server error.' });
+    }
+});
+
+// Update user
+app.put('/users/:id', (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, address, email } = req.body;
+        if (!name || !address || !email) {
+            return res.status(400).json({ message: 'Name, address, email required.' });
+        }
+        const info = db.prepare(
+            `UPDATE nonadminuser SET name = ?, address = ?, email = ? WHERE nonadminuser_id = ?`
+        ).run(name, address, email, id);
+        if (info.changes === 0) return res.status(404).json({ message: 'User not found.' });
+        return res.json({ message: 'User updated.' });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Internal server error.' });
+    }
+});
+
+// Delete user
+app.delete('/users/:id', (req, res) => {
+    try {
+        const id = Number(req.params.id);
+        // fetch userpassword_id
+        const row = db.prepare('SELECT userpassword_id FROM nonadminuser WHERE nonadminuser_id = ?').get(id);
+        if (!row) return res.status(404).json({ message: 'User not found.' });
+
+        // delete user record first
+        db.prepare('DELETE FROM nonadminuser WHERE nonadminuser_id = ?').run(id);
+        // then delete its password record
+        db.prepare('DELETE FROM userpassword WHERE userpassword_id = ?').run(row.userpassword_id);
+
+        return res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Internal server error.' });
+    }
+});
 
 // 5) Registration endpoint
 app.post('/register', async (req, res) => {
@@ -145,14 +201,14 @@ app.post('/register', async (req, res) => {
         // Insert into userpassword
         const upInfo = db.prepare(
             `INSERT INTO userpassword (encrypted_password, password_expiry_time, user_account_expiry_date)
-       VALUES (?, ?, ?)`
+             VALUES (?, ?, ?)`
         ).run(hash, expiryTime, accountExpiryDate);
         const userpassword_id = upInfo.lastInsertRowid;
 
         // Insert into nonadminuser
         const userInfo = db.prepare(
             `INSERT INTO nonadminuser (name, username, address, email, userpassword_id)
-       VALUES (?, ?, ?, ?, ?)`
+             VALUES (?, ?, ?, ?, ?)`
         ).run(name, username, address, email, userpassword_id);
 
         console.log('✅ User registered with id', userInfo.lastInsertRowid);
@@ -165,22 +221,41 @@ app.post('/register', async (req, res) => {
     }
 });
 
-// 6) Login endpoint
+// 6) Login endpoint (handles both admin & non-admin)
 app.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
         if (!username || !password) {
-            return res
-                .status(400)
-                .json({ message: 'Username and password required.' });
+            return res.status(400).json({ message: 'Username and password required.' });
         }
 
+        // 6a) Check for admin credentials first
+        const adminRow = db
+            .prepare('SELECT administrator_id, encrypted_password FROM administrator WHERE username = ?')
+            .get(username);
+        if (adminRow) {
+            const isAdmin = await bcrypt.compare(password, adminRow.encrypted_password);
+            if (!isAdmin) {
+                return res.status(401).json({ message: 'Invalid credentials.' });
+            }
+            // Return full list of non-admin users for admin
+            const users = db
+                .prepare(
+                    `SELECT nonadminuser_id AS id, name, username, address, email
+                     FROM nonadminuser`
+                )
+                .all();
+            console.log('✅ Admin logged in, returning user list');
+            return res.json({ admin: true, users });
+        }
+
+        // 6b) Non-admin login
         const row = db
             .prepare(
-                `SELECT nu.nonadminuser_id, nu.name, up.encrypted_password
-         FROM nonadminuser nu
-         JOIN userpassword up ON nu.userpassword_id = up.userpassword_id
-         WHERE nu.username = ?`
+                `SELECT nu.nonadminuser_id AS id, nu.name, up.encrypted_password
+                 FROM nonadminuser nu
+                 JOIN userpassword up ON nu.userpassword_id = up.userpassword_id
+                 WHERE nu.username = ?`
             )
             .get(username);
 
@@ -193,10 +268,11 @@ app.post('/login', async (req, res) => {
             return res.status(401).json({ message: 'Invalid credentials.' });
         }
 
-        console.log('✅ Login successful for user', row.nonadminuser_id);
+        console.log('✅ Login successful for user', row.id);
         return res.json({
-            userId: row.nonadminuser_id,
+            userId: row.id,
             name: row.name,
+            admin: false,
             message: 'Login successful.'
         });
     } catch (err) {

@@ -4,6 +4,8 @@ import bgImage from '../assets/webBackground.webp';
 
 const Home = () => {
     const name = localStorage.getItem('userName');
+
+    const isAdmin = localStorage.getItem('admin') === 'true';
     return (
         <div style={styles.page}>
             <div style={styles.formWrapper}>
@@ -22,6 +24,11 @@ const Home = () => {
                 </h3>
                 <nav>
                     <ul style={{ listStyleType: 'none', padding: 0 }}>
+                        {isAdmin && (
+                            <li>
+                                <Link to="/manage-users" style={styles.linkButton}>Manage Users</Link>
+                            </li>
+                        )}
                         <li>
                             <Link to="/transactions/new" style={styles.linkButton}>Create Transaction</Link>
                         </li>
@@ -58,7 +65,7 @@ const styles = {
     formWrapper: {
         backgroundColor: 'rgba(255,255,255,0.85)',
         borderRadius: '12px',
-        padding: '3rem 2rem',
+        padding: '5rem 2rem',
         width: '360px',
         boxShadow: '0 6px 18px rgba(0,0,0,0.2)',
         textAlign: 'center',

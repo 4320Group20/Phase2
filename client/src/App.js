@@ -8,6 +8,7 @@ import ReportPage from './views/ReportPage';
 import ResetPassword from './views/ResetPassword';
 import AccountGroupsView from './views/AccountGroupsView';
 import ChartOfAccountsView from './views/ChartOfAccountsView';
+import ManageUsers from './views/ManageUsers';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/account-groups" element={<AccountGroupsView />} />
         <Route path="/chart-of-accounts" element={<ChartOfAccountsView />} />
+        <Route path="/manage-users" element={<ManageUsers />} />
       </Routes>
     </Router>
   );

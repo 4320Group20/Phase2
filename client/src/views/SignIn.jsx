@@ -50,6 +50,7 @@ const SignIn = () => {
           // Success! Store & redirect
           localStorage.setItem('userId', data.userId);
           localStorage.setItem('userName', data.name);
+          localStorage.setItem('admin', data.admin ? 'true' : 'false');
           navigate('/');
       } catch (err) {
           console.error('handleSignIn error:', err);
