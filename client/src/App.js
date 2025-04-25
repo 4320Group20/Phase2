@@ -6,6 +6,7 @@ import TransactionHistory from './views/TransactionHistory';
 import SignUp from './views/SignUp';
 import ReportPage from './views/ReportPage';
 import ResetPassword from './views/ResetPassword';
+import AccountGroupsView from './views/AccountGroupsView';
 
 function App() {
   return (
@@ -18,7 +19,7 @@ function App() {
         <Route path="/transactions/history" element={<TransactionHistory />} />
         <Route path="/report" element={<ReportPage transactions={[]} accounts={[]} />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-
+        <Route path="/account-groups" element={<AccountGroupsView />} />
       </Routes>
     </Router>
   );
