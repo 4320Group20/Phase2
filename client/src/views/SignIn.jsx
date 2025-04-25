@@ -29,7 +29,9 @@ const SignIn = () => {
     }
   };
 
-  const handleCreateAccount = () => navigate('/signup');
+    const handleCreateAccount = () => navigate('/signup');
+
+    const handleResetPassword = () => navigate('/reset-password');
 
   return (
     <div style={styles.page}>
@@ -62,6 +64,15 @@ const SignIn = () => {
             Log In
           </button>
         </form>
+
+              <p style={styles.text}>Forgot your password?</p>
+              <button
+                  type="button"
+                  onClick={handleResetPassword}
+                  style={styles.resetPasswordButton}
+              >
+                  Reset Password
+              </button>
 
         <p style={styles.text}>Don't have an account?</p>
         <button
@@ -147,7 +158,20 @@ const styles = {
   error: {
     color:       '#d9534f',
     marginBottom:'1rem',
-  },
+    },
+    resetPasswordButton: {
+        display: 'block',
+        width: '60%',
+        margin: '1rem auto 1.5rem',
+        padding: '0.75rem',
+        fontSize: '1rem',
+        fontFamily: 'inherit',
+        cursor: 'pointer',
+        border: '1px solid #007bff',
+        borderRadius: '6px',
+        background: 'white',
+        color: '#007bff',
+    },
 };
 
 export default SignIn;

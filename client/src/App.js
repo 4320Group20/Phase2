@@ -5,6 +5,7 @@ import TransactionForm from './views/TransactionForm';
 import TransactionHistory from './views/TransactionHistory';
 import SignUp from './views/SignUp';
 import ReportPage from './views/ReportPage';
+import ResetPassword from './views/ResetPassword';
 
 function App() {
   return (
@@ -16,6 +17,8 @@ function App() {
         <Route path="/create-transaction" element={<TransactionForm />} />
         <Route path="/transactions/history" element={<TransactionHistory />} />
         <Route path="/report" element={<ReportPage transactions={[]} accounts={[]} />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+
       </Routes>
     </Router>
   );
