@@ -1,7 +1,8 @@
 const NonAdminUser = require('../models/NonAdminUser');
 const Administrator = require('../models/Administrator');
 const UserPassword = require('../models/UserPassword');
-const crypto = require('crypto');
+const crypto = require('crypto');//TODO: Fix this stuff... 
+// import bcrypt from 'bcrypt'; 
 
 // In-memory storage (simulate DB tables)
 const registeredUsers = [];
@@ -19,6 +20,18 @@ const encryptPassword = (password) =>
         resolve(hash.digest('hex'));
     });
 
+const updatePasswordInDB = (userId, newPassword) => {
+    const salt = bcrypt.genSalt(10);
+    const hashedPassword = bcrypt.hash(newPassword, salt);
+
+    const result = UserPassword.updateOne(
+        { ID: userId },
+        { encryptedPassword: hashedPassword }
+    );
+
+    return result.modifiedCount > 0;
+};
+    
 /**
  * POST /api/auth/signup
  * Body: { name, userName, password, address, email }
@@ -101,4 +114,28 @@ exports.authenticate = (req, res) => {
         console.error(err);
         return res.status(500).json({ message: 'Internal server error.', error: err.message });
     }
+};
+
+exports.changePassword = (userId, oldPassword, newPassword1, newPassword2) => {
+    if (newPassword1 !== newPassword2) {
+        return { success: false, message: "New passwords do not match." };
+    }
+
+    const userRecord = UserPassword.findOne({ ID: userId });
+
+    if (!userRecord) {
+        return { success: false, message: "User not found." };
+    }
+
+    const isMatch = bcrypt.compare(oldPassword, userRecord.encryptedPassword);
+    if (!isMatch) {
+        return { success: false, message: "Old password is incorrect." };
+    }
+
+    const updateSuccess = updatePasswordInDB(userId, newPassword1);
+    if (!updateSuccess) {
+        return { success: false, message: "Failed to update password." };
+    }
+
+    return { success: true, message: "Password changed successfully." };
 };
