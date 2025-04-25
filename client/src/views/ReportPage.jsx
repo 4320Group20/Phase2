@@ -2,23 +2,41 @@ import React, { useState } from "react";
 import ReportFilterForm from "../components/ReportFilterForm";
 import ReportResult from "../components/ReportResult";
 
-const ReportPage = ({ transactions, accounts }) => {
+const ReportPage = () => {
     const [reportData, setReportData] = useState(null);
+    const [error, setError] = useState(null);
 
-    const handleGenerate = (filters) => {
-        //const data = controller.generateReport(filters.reportType, filters);
-        //setReportData(data);
+    const handleGenerate = async (filters) => {
+        setError(null);
+        try {
+            const res = await fetch("http://localhost:5000/report", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    ...filters,
+                    userId: Number(localStorage.getItem("userId"))
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || "Failed to generate report");
+            setReportData(data);
+        } catch (err) {
+            setError(err.message);
+        }
     };
 
     const handleExport = () => {
+        // Simple client-side print/export fallback
         if (reportData) {
-            //controller.exportToPDF(reportData);
+            window.print();
         }
     };
 
     return (
         <div style={styles.pageWrapper}>
             <h1 style={styles.title}>Financial Report</h1>
+
+            {error && <p style={{ color: 'red' }}>{error}</p>}
 
             <ReportFilterForm onGenerate={handleGenerate} />
 

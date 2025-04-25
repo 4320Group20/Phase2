@@ -114,7 +114,10 @@ const userCount = db.prepare('SELECT COUNT(*) as count FROM nonadminuser').get()
 if (userCount === 0) {
     const defaultUsers = [
         { name: 'Alice Smith', username: 'alice', address: '123 Maple St', email: 'alice@example.com', password: 'alicepw' },
-        { name: 'Bob Jones', username: 'bob', address: '456 Oak Ave', email: 'bob@example.com', password: 'bobpw' }
+        { name: 'Bob Jones', username: 'bob', address: '456 Oak Ave', email: 'bob@example.com', password: 'bobpw' },
+        { name: 'Charlie Brown', username: 'charlie', address: '789 Pine Rd', email: 'charlie@example.com', password: 'charliepw' },
+        { name: 'Dana White', username: 'dana', address: '101 Elm St', email: 'dana@example.com', password: 'danapw' },
+        { name: 'Eve Black', username: 'eve', address: '202 Cedar Ln', email: 'eve@example.com', password: 'evepw' }
     ];
     defaultUsers.forEach(u => {
         const hash = bcrypt.hashSync(u.password, 10);
@@ -132,6 +135,60 @@ if (userCount === 0) {
     });
     console.log('✅ Seeded default non-admin users');
 }
+
+// ─── Dev-only: seed some transactions for Alice & Bob ───
+(() => {
+    // fetch their IDs
+    const alice = db.prepare(`SELECT nonadminuser_id AS id FROM nonadminuser WHERE username = ?`).get('alice');
+    const bob = db.prepare(`SELECT nonadminuser_id AS id FROM nonadminuser WHERE username = ?`).get('bob');
+    if (!alice || !bob) return;
+
+    // don't reseed if Alice already has transactions
+    const existing = db.prepare(`SELECT 1 FROM "transaction" WHERE user_id = ?`).get(alice.id);
+    if (existing) return;
+
+    // helper to insert one transaction+lines
+    const insertTxn = (userId, date, desc, lines) => {
+        const t = db.prepare(`INSERT INTO "transaction"(date,description,user_id) VALUES(?,?,?)`)
+            .run(date, desc, userId);
+        const tid = t.lastInsertRowid;
+        const insLine = db.prepare(`INSERT INTO transactionline
+      (transaction_id, credited_amount, debited_amount, comments)
+      VALUES(?,?,?,?)`);
+        lines.forEach(l => insLine.run(tid, l.credit, l.debit, l.comments));
+    };
+
+    // Alice: one simple balanced transaction
+    insertTxn(alice.id,
+        new Date().toISOString(),
+        'Alice initial deposit',
+        [
+            { credit: 1000, debit: 0, comments: 'Cash in' },
+            { credit: 0, debit: 1000, comments: 'Equity out' }
+        ]
+    );
+
+    // Bob: two sample transactions
+    insertTxn(bob.id,
+        new Date().toISOString(),
+        'Bob salary',
+        [
+            { credit: 2000, debit: 0, comments: 'Salary' },
+            { credit: 0, debit: 2000, comments: 'Income' }
+        ]
+    );
+    insertTxn(bob.id,
+        new Date().toISOString(),
+        'Bob rent payment',
+        [
+            { credit: 0, debit: 800, comments: 'Cash out' },
+            { credit: 800, debit: 0, comments: 'Rent exp' }
+        ]
+    );
+
+    console.log('✅ Seeded sample transactions for Alice & Bob');
+})();
+
 
 console.log('DB Successfully initialized');
 
@@ -371,22 +428,25 @@ app.get('/transactions', (req, res) => {
 // --- REPORT GENERATION --- //
 app.post('/report', (req, res) => {
     try {
-        const { reportType, startDate, endDate, accountType, category } = req.body;
+        const { reportType, startDate, endDate, accountType, category, userId } = req.body;
         if (!reportType || !startDate || !endDate) {
             return res.status(400).json({ message: 'reportType, startDate, and endDate are required.' });
         }
         // Pull all lines in the date range
+        // now only grab that user’s transactions:
         const rows = db.prepare(`
-      SELECT t.transaction_id AS id,
-             t.date,
-             t.description,
-             tl.credited_amount AS credit,
-             tl.debited_amount  AS debit,
-             tl.comments        AS category_field
-      FROM "transaction" t
-      JOIN transactionline tl ON t.transaction_id = tl.transaction_id
-      WHERE date(t.date) BETWEEN date(?) AND date(?)
-    `).all(startDate, endDate);
+            SELECT
+              t.transaction_id  AS id,
+              t.date,
+              t.description,
+              tl.credited_amount AS credit,
+              tl.debited_amount  AS debit,
+              tl.comments        AS category_field
+            FROM "transaction" t
+            JOIN transactionline tl ON t.transaction_id = tl.transaction_id
+            WHERE t.user_id = ?
+              AND date(t.date) BETWEEN date(?) AND date(?)
+            `).all(userId, startDate, endDate);
 
         // Summary report
         if (reportType === 'summary') {
