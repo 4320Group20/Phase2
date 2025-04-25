@@ -97,6 +97,43 @@ db.exec(`
   );
 `);
 
+// Create accountcategory table
+db.exec(`
+  CREATE TABLE IF NOT EXISTS accountcategory (
+    accountcategory_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    type TEXT NOT NULL,            
+    group_id INTEGER DEFAULT NULL,
+    FOREIGN KEY(group_id) REFERENCES "group"(group_id)
+      ON DELETE SET NULL
+  );
+`);
+
+// Create group table
+db.exec(`
+  CREATE TABLE IF NOT EXISTS "group" (
+      group_id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      parent_masteraccount_id INTEGER DEFAULT NULL,
+      parent_group_id      INTEGER DEFAULT NULL,
+      category_id          INTEGER NOT NULL,
+    FOREIGN KEY(parent_group_id) REFERENCES "group"(group_id)
+      ON DELETE CASCADE,
+    FOREIGN KEY(category_id) REFERENCES accountcategory(accountcategory_id)
+      ON DELETE CASCADE
+  );
+`);
+db.exec(`
+  CREATE TABLE IF NOT EXISTS masteraccount (
+    masteraccount_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR(255) NOT NULL,
+    opening_amount DOUBLE NOT NULL,
+    closing_amount DOUBLE
+  );
+`);
+
+
+
 // Seed default admin if not present
 const adminExists = db
     .prepare('SELECT 1 FROM administrator WHERE username = ?')
@@ -188,6 +225,29 @@ if (userCount === 0) {
 
     console.log('✅ Seeded sample transactions for Alice & Bob');
 })();
+
+// ─── Dev‐only: seed a few account categories ───
+(() => {
+    const cats = [
+        { name: 'Assets', type: 'Balance Sheet' },
+        { name: 'Liabilities', type: 'Balance Sheet' },
+        { name: 'Equity', type: 'Balance Sheet' },
+        { name: 'Income', type: 'P&L' },
+        { name: 'Expenses', type: 'P&L' },
+    ];
+    cats.forEach(cat => {
+        const exists = db.prepare(
+            'SELECT 1 FROM accountcategory WHERE name = ?'
+        ).get(cat.name);
+        if (!exists) {
+            db.prepare(
+                'INSERT INTO accountcategory(name,type) VALUES(?,?)'
+            ).run(cat.name, cat.type);
+        }
+    });
+    console.log('✅ Seeded default account categories');
+})();
+
 
 
 console.log('DB Successfully initialized');
@@ -474,6 +534,185 @@ app.post('/report', (req, res) => {
     } catch (err) {
         console.error(err);
         return res.status(500).json({ message: 'Server error.' });
+    }
+});
+
+// GET account categories
+app.get('/account-categories', (req, res) => {
+    const categories = db.prepare(
+        'SELECT accountcategory_id AS id, name, type, group_id AS root_group_id FROM accountcategory'
+    ).all();
+    res.json({ categories });
+});
+
+// GET all groups
+app.get('/groups', (req, res) => {
+    const groups = db.prepare(
+        'SELECT group_id, name, parent_masteraccount_id, parent_group_id, group_id, category_id FROM "group"'
+    ).all();
+    res.json({ groups });
+});
+
+// POST /groups
+app.post('/groups', (req, res) => {
+    const { name, parent_masteraccount_id, parent_group_id } = req.body;
+    if (!name) return res.status(400).json({ message: 'Name required.' });
+    const info = db.prepare(
+        'INSERT INTO "group"(name,parent_masteraccount_id,parent_group_id) VALUES(?,?,?)'
+    ).run(name, parent_masteraccount_id, parent_group_id);
+    res.status(201).json({ groupId: info.lastInsertRowid });
+});
+
+// PUT /groups/:id
+app.put('/groups/:id', (req, res) => {
+    const id = Number(req.params.id), { name } = req.body;
+    if (!name) return res.status(400).json({ message: 'Name required.' });
+    const info = db.prepare(
+        'UPDATE "group" SET name = ? WHERE group_id = ?'
+    ).run(name, id);
+    if (info.changes === 0) return res.status(404).json({ message: 'Group not found.' });
+    res.json({ message: 'Updated.' });
+});
+
+// DELETE /groups/:id
+app.delete('/groups/:id', (req, res) => {
+    const id = Number(req.params.id);
+    db.prepare('DELETE FROM "group" WHERE group_id = ?').run(id);
+    res.json({ message: 'Deleted.' });
+});
+
+
+// Enable FK constraints
+db.exec(`PRAGMA foreign_keys = ON;`);
+
+// ─── 1) Ensure masteraccount has a group_id column ───
+try {
+    db.prepare(`ALTER TABLE masteraccount ADD COLUMN group_id INTEGER`).run();
+} catch (e) {
+    // ignore if it already exists
+}
+
+// ─── 2) GET all master accounts ───
+app.get('/masteraccounts', (req, res) => {
+    try {
+        const rows = db.prepare(`
+      SELECT
+        m.masteraccount_id   AS masteraccount_id,
+        m.name               AS name,
+        m.opening_amount     AS opening_amount,
+        m.closing_amount     AS closing_amount,
+        m.group_id           AS parent_group_id
+      FROM masteraccount m
+    `).all();
+
+        return res.json({ accounts: rows });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Could not fetch accounts.' });
+    }
+});
+
+// ─── 3) CREATE a new master account ───
+app.post('/masteraccounts', (req, res) => {
+    const { name, opening_amount, parent_group_id } = req.body;
+    if (!name || opening_amount == null) {
+        return res.status(400).json({ message: 'name and opening_amount are required.' });
+    }
+    try {
+        const info = db.prepare(`
+      INSERT INTO masteraccount
+        (name, opening_amount, closing_amount, group_id)
+      VALUES (?, ?, ?, ?)
+    `).run(
+            name,
+            opening_amount,
+            opening_amount,            // initialize closing = opening
+            parent_group_id || null
+        );
+        const account = db.prepare(`
+      SELECT masteraccount_id, name, opening_amount, closing_amount, group_id AS parent_group_id
+      FROM masteraccount
+      WHERE masteraccount_id = ?
+    `).get(info.lastInsertRowid);
+
+        return res.status(201).json({ account });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Could not create account.' });
+    }
+});
+
+// ─── 4) UPDATE an existing master account ───
+app.put('/masteraccounts/:id', (req, res) => {
+    const id = Number(req.params.id);
+    const { name, opening_amount, parent_group_id } = req.body;
+    const sets = [];
+    const vals = [];
+    if (name !== undefined) { sets.push('name = ?'); vals.push(name); }
+    if (opening_amount !== undefined) { sets.push('opening_amount = ?'); vals.push(opening_amount); }
+    if (parent_group_id !== undefined) { sets.push('group_id = ?'); vals.push(parent_group_id); }
+
+    if (!sets.length) {
+        return res.status(400).json({ message: 'No fields provided to update.' });
+    }
+    vals.push(id);
+
+    try {
+        const info = db.prepare(`
+      UPDATE masteraccount
+      SET ${sets.join(', ')}
+      WHERE masteraccount_id = ?
+    `).run(...vals);
+
+        if (info.changes === 0) {
+            return res.status(404).json({ message: 'Account not found.' });
+        }
+        return res.json({ message: 'Updated.' });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Could not update account.' });
+    }
+});
+
+// ─── 5) DELETE a master account ───
+app.delete('/masteraccounts/:id', (req, res) => {
+    const id = Number(req.params.id);
+    try {
+        const info = db.prepare(`
+      DELETE FROM masteraccount
+      WHERE masteraccount_id = ?
+    `).run(id);
+
+        if (info.changes === 0) {
+            return res.status(404).json({ message: 'Account not found.' });
+        }
+        return res.json({ message: 'Deleted.' });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Could not delete account.' });
+    }
+});
+
+// ─── 6) Enhance GET /groups to include category_name ───
+app.get('/groups', (req, res) => {
+    try {
+        const rows = db.prepare(`
+      SELECT
+        g.group_id,
+        g.name,
+        g.parent_masteraccount_id,
+        g.parent_group_id,
+        g.category_id,
+        c.name AS category_name
+      FROM "group" g
+      JOIN accountcategory c
+        ON g.category_id = c.accountcategory_id
+    `).all();
+
+        return res.json({ groups: rows });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Could not fetch groups.' });
     }
 });
 

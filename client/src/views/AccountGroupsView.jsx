@@ -1,205 +1,159 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import bgImage from '../assets/webBackground.webp';
 
 const AccountGroupsControl = () => {
-    const [accountGroups, setAccountGroups] = useState([]); // To store groups
-    const [selectedNode, setSelectedNode] = useState(null); // To keep track of the selected node
-    const [groupName, setGroupName] = useState(''); // To manage the new group name
-    const [errorMessage, setErrorMessage] = useState(''); // For displaying error messages
+    const API = 'http://localhost:5000';
+    const [categories, setCategories] = useState([]);
+    const [groups, setGroups] = useState([]);
+    const [selectedCat, setSelectedCat] = useState('');
+    const [selectedGroup, setSelectedGroup] = useState('');
+    const [catName, setCatName] = useState('');
+    const [grpName, setGrpName] = useState('');
+    const [error, setError] = useState('');
 
-    // Sample data for account categories and groups (this would usually come from an API)
-    const accountCategories = [
-        { ID: 1, name: 'Assets' },
-        { ID: 2, name: 'Liabilities' },
-        { ID: 3, name: 'Equity' },
-    ];
+    useEffect(() => {
+        reloadCategories();
+        reloadGroups();
+    }, []);
 
-    const groups = [
-        { ID: 1, name: 'Current Assets', parent: null, categoryID: 1, subGroups: [] },
-        { ID: 2, name: 'Cash', parent: 1, categoryID: 1, subGroups: [] },
-        { ID: 3, name: 'Long-Term Liabilities', parent: null, categoryID: 2, subGroups: [] },
-    ];
-
-    // Functions for button actions
-    const handleAddGroup = () => {
-        if (!groupName.match(/^[a-zA-Z0-9]+$/)) {
-            setErrorMessage('Invalid group name');
-            return;
-        }
-
-        if (!selectedNode) {
-            setErrorMessage('Please select a category or group');
-            return;
-        }
-
-        const newGroup = {
-            ID: groups.length + 1,
-            name: groupName,
-            parent: selectedNode.ID,
-            categoryID: selectedNode.categoryID,
-            subGroups: [],
-        };
-
-        // If the selected node is a group, add the new group as its subgroup
-        if (selectedNode.subGroups) {
-            selectedNode.subGroups.push(newGroup);
-        }
-
-        // Add the new group to the main groups array
-        setAccountGroups([...accountGroups, newGroup]);
-
-        // Clear the group name input
-        setGroupName('');
+    const reloadCategories = () => {
+        fetch(`${API}/account-categories`)
+            .then(res => res.ok ? res.json() : Promise.reject('Could not load categories'))
+            .then(json => setCategories(json.categories || []))
+            .catch(msg => setError(msg));
     };
 
-    const handleRemoveGroup = () => {
-        if (!selectedNode) {
-            setErrorMessage('Please select a group to remove');
-            return;
-        }
-
-        // Ensure the group can be deleted (no sub-groups)
-        if (selectedNode.subGroups && selectedNode.subGroups.length > 0) {
-            setErrorMessage('Cannot remove group with sub-groups');
-            return;
-        }
-
-        const updatedGroups = accountGroups.filter((group) => group.ID !== selectedNode.ID);
-        setAccountGroups(updatedGroups);
-        setSelectedNode(null);
+    const reloadGroups = () => {
+        fetch(`${API}/groups`)
+            .then(res => res.ok ? res.json() : Promise.reject('Could not load groups'))
+            .then(json => setGroups(json.groups || []))
+            .catch(msg => setError(msg));
     };
 
-    const handleChangeName = () => {
-        if (!selectedNode) {
-            setErrorMessage('Please select a group to edit');
-            return;
-        }
-
-        const newName = prompt('Enter new name for the group', selectedNode.name);
-        if (newName && newName.trim() !== '') {
-            setAccountGroups(
-                accountGroups.map((group) =>
-                    group.ID === selectedNode.ID ? { ...group, name: newName } : group
-                )
-            );
-        }
+    // Category CRUD
+    const addCategory = () => {
+        if (!catName.trim()) return setError('Category name required');
+        fetch(`${API}/account-categories`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: catName })
+        })
+            .then(res => res.ok ? reloadCategories() : res.text().then(t => Promise.reject(t)))
+            .then(() => setCatName(''))
+            .catch(msg => setError(msg));
     };
 
-    const handleNodeSelect = (node) => {
-        setSelectedNode(node);
-        setErrorMessage('');
+    const renameCategory = () => {
+        if (!selectedCat) return setError('Select a category');
+        const newName = prompt('New category name');
+        if (!newName) return;
+        fetch(`${API}/account-categories/${selectedCat}`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: newName })
+        })
+            .then(res => res.ok ? reloadCategories() : res.text().then(t => Promise.reject(t)))
+            .catch(msg => setError(msg));
     };
+
+    const deleteCategory = () => {
+        if (!selectedCat) return setError('Select a category');
+        fetch(`${API}/account-categories/${selectedCat}`, { method: 'DELETE' })
+            .then(res => res.ok ? reloadCategories() : res.text().then(t => Promise.reject(t)))
+            .catch(msg => setError(msg));
+    };
+
+    // Group CRUD
+    const addGroup = () => {
+        if (!grpName.trim()) return setError('Group name required');
+        if (!selectedCat) return setError('Select a category first');
+        fetch(`${API}/groups`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: grpName, category_id: Number(selectedCat), parent_masteraccount_id: null, parent_group_id: null })
+        })
+            .then(res => res.ok ? reloadGroups() : res.text().then(t => Promise.reject(t)))
+            .then(() => setGrpName(''))
+            .catch(msg => setError(msg));
+    };
+
+    const renameGroup = () => {
+        if (!selectedGroup) return setError('Select a group');
+        const newName = prompt('New group name');
+        if (!newName) return;
+        fetch(`${API}/groups/${selectedGroup}`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: newName })
+        })
+            .then(res => res.ok ? reloadGroups() : res.text().then(t => Promise.reject(t)))
+            .catch(msg => setError(msg));
+    };
+
+    const deleteGroup = () => {
+        if (!selectedGroup) return setError('Select a group');
+        fetch(`${API}/groups/${selectedGroup}`, { method: 'DELETE' })
+            .then(res => res.ok ? reloadGroups() : res.text().then(t => Promise.reject(t)))
+            .catch(msg => setError(msg));
+    };
+
+    const filteredGroups = groups.filter(g => g.category_id === Number(selectedCat));
 
     return (
-        <div style={styles.container}>
-            <h2 style={styles.title}>Account Groups Management</h2>
+        <div style={{ ...styles.container, backgroundImage: `url(${bgImage})` }}>
+            <h2 style={styles.title}>Manage Categories & Groups</h2>
+            {error && <div style={styles.error}>{error}</div>}
 
-            {errorMessage && <div style={styles.errorContainer}>{errorMessage}</div>}
-
-            <div style={styles.treeContainer}>
-                <h3>Account Categories</h3>
-                <ul style={styles.tree}>
-                    {accountCategories.map((category) => (
-                        <li key={category.ID} onClick={() => handleNodeSelect(category)} style={styles.treeNode}>
-                            {category.name}
-                            <ul>
-                                {groups
-                                    .filter((group) => group.categoryID === category.ID)
-                                    .map((group) => (
-                                        <li key={group.ID} onClick={() => handleNodeSelect(group)} style={styles.treeNode}>
-                                            {group.name}
-                                            {group.subGroups.length > 0 && (
-                                                <ul>
-                                                    {group.subGroups.map((subGroup) => (
-                                                        <li
-                                                            key={subGroup.ID}
-                                                            onClick={() => handleNodeSelect(subGroup)}
-                                                            style={styles.treeNode}
-                                                        >
-                                                            {subGroup.name}
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            )}
-                                        </li>
-                                    ))}
-                            </ul>
-                        </li>
+            <section style={styles.section}>
+                <h3>Categories</h3>
+                <select value={selectedCat} onChange={e => { setSelectedCat(e.target.value); setError(''); }} style={styles.select}>
+                    <option value="">-- Select Category --</option>
+                    {categories.map(c => (
+                        <option key={c.accountcategory_id} value={c.accountcategory_id}>{c.name}</option>
                     ))}
-                </ul>
-            </div>
-
-            <div style={styles.controls}>
+                </select>
                 <input
-                    type="text"
-                    value={groupName}
-                    onChange={(e) => setGroupName(e.target.value)}
-                    placeholder="Enter group name"
+                    placeholder="Category Name"
+                    value={catName}
+                    onChange={e => setCatName(e.target.value)}
                     style={styles.input}
                 />
-                <button onClick={handleAddGroup} style={styles.button}>Add Group</button>
-                <button onClick={handleRemoveGroup} style={styles.button}>Remove Group</button>
-                <button onClick={handleChangeName} style={styles.button}>Change Group Name</button>
-            </div>
+                <div style={styles.buttons}>
+                    <button onClick={addCategory}>Add</button>
+                    <button onClick={renameCategory} disabled={!selectedCat}>Rename</button>
+                    <button onClick={deleteCategory} disabled={!selectedCat}>Delete</button>
+                </div>
+            </section>
+
+            <section style={styles.section}>
+                <h3>Groups</h3>
+                <select value={selectedGroup} onChange={e => { setSelectedGroup(e.target.value); setError(''); }} style={styles.select} disabled={!selectedCat}>
+                    <option value="">-- Select Group --</option>
+                    {filteredGroups.map(g => (
+                        <option key={g.group_id} value={g.group_id}>{g.name}</option>
+                    ))}
+                </select>
+                <input
+                    placeholder="Group Name"
+                    value={grpName}
+                    onChange={e => setGrpName(e.target.value)}
+                    style={styles.input}
+                    disabled={!selectedCat}
+                />
+                <div style={styles.buttons}>
+                    <button onClick={addGroup} disabled={!selectedCat}>Add</button>
+                    <button onClick={renameGroup} disabled={!selectedGroup}>Rename</button>
+                    <button onClick={deleteGroup} disabled={!selectedGroup}>Delete</button>
+                </div>
+            </section>
         </div>
     );
 };
 
 const styles = {
-    container: {
-        padding: '2rem',
-        backgroundColor: 'rgba(255, 255, 255, 0.85)',
-        borderRadius: '12px',
-        maxWidth: '800px',
-        margin: '0 auto',
-        textAlign: 'center',
-    },
-    title: {
-        fontSize: '2.5rem',
-        fontWeight: 'bold',
-        marginBottom: '2rem',
-    },
-    errorContainer: {
-        color: 'red',
-        marginBottom: '1rem',
-    },
-    treeContainer: {
-        maxHeight: '300px',
-        overflowY: 'auto',
-        textAlign: 'left',
-        marginBottom: '2rem',
-    },
-    tree: {
-        listStyleType: 'none',
-        paddingLeft: '20px',
-        textAlign: 'left',
-    },
-    treeNode: {
-        cursor: 'pointer',
-        padding: '5px',
-    },
-    controls: {
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: '1rem',
-    },
-    input: {
-        padding: '1rem',
-        fontSize: '1rem',
-        width: '80%',
-        marginBottom: '1rem',
-        borderRadius: '8px',
-        border: '1px solid #ccc',
-    },
-    button: {
-        backgroundColor: '#28a745',
-        color: '#fff',
-        padding: '0.75rem 1.5rem',
-        borderRadius: '8px',
-        fontSize: '1.2rem',
-        cursor: 'pointer',
-        width: '200px',
-    },
+    container: { padding: '2rem', maxWidth: '600px', margin: 'auto', backgroundColor: 'rgba(255,255,255,0.9)', borderRadius: '8px' },
+    title: { textAlign: 'center', marginBottom: '1rem' },
+    error: { color: 'red', textAlign: 'center', marginBottom: '1rem' },
+    section: { marginBottom: '2rem' },
+    select: { width: '100%', padding: '0.5rem', marginBottom: '0.5rem' },
+    input: { width: '100%', padding: '0.5rem', marginBottom: '0.5rem' },
+    buttons: { display: 'flex', gap: '0.5rem' }
 };
 
 export default AccountGroupsControl;

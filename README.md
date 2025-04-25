@@ -12,6 +12,10 @@ $ ./init.sh
 
 The website will then be open at http://localhost:3000
 
+To sign in as an admin:
+username: admin
+password: admin123
+
 Members:
 Andrew Klusmeyer,
 Ashton Wooster,

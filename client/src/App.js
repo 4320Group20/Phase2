@@ -7,9 +7,18 @@ import SignUp from './views/SignUp';
 import ReportPage from './views/ReportPage';
 import ResetPassword from './views/ResetPassword';
 import AccountGroupsView from './views/AccountGroupsView';
-import ChartOfAccountsView from './views/ChartOfAccountsView';
 import ManageUsers from './views/ManageUsers';
+import { useNavigate } from 'react-router-dom';
+import ChartOfAccountsContainer from './components/ChartOfAccountsContainer';
 
+function ChartPageWrapper() {
+    const navigate = useNavigate();
+    return (
+        <ChartOfAccountsContainer
+            onExit={() => navigate('/')}
+        />
+    );
+}
 function App() {
   return (
     <Router>
@@ -22,7 +31,10 @@ function App() {
         <Route path="/report" element={<ReportPage transactions={[]} accounts={[]} />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/account-groups" element={<AccountGroupsView />} />
-        <Route path="/chart-of-accounts" element={<ChartOfAccountsView />} />
+        <Route
+            path="/chart-of-accounts"
+            element={<ChartPageWrapper />}
+        />
         <Route path="/manage-users" element={<ManageUsers />} />
       </Routes>
     </Router>
