@@ -3,7 +3,7 @@ const db = require('../db');
 module.exports = {
     createUserPassword: async ({ encryptedPassword, passwordExpiryTime, userAccountExpiryDate }) => {
         const q = db.prepare(`
-            INSERT INTO userpasswords (encryptedPassword, passwordExpiryTime, userAccountExpiryDate)
+            INSERT INTO userpassword (encryptedPassword, passwordExpiryTime, userAccountExpiryDate)
             VALUES (?,?,?)
         `);
         q.run(encryptedPassword, passwordExpiryTime, userAccountExpiryDate);

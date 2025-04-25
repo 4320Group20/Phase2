@@ -62,7 +62,7 @@ exports.registerUser = (req, res) => {
 
         return res.status(201).json({
             message: 'User registered.',
-            user: { id: user.id, name, username, address, email }
+            user: { name, username, address, email }
         });
 
     } catch (err) {
