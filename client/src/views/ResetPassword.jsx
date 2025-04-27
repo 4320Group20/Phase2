@@ -20,24 +20,31 @@ const ResetPassword = () => {
         e.preventDefault();
         setError(null);
         setMessage('');
+
         try {
-            const res = await fetch('/api/reset-password', {
+            // 1) Hit your actual server
+            const res = await fetch('http://localhost:5000/api/reset-password', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    username,
-                    previousPassword,
-                    newPassword
-                })
+                body: JSON.stringify({ username, previousPassword, newPassword })
             });
 
-            if (!res.ok) throw new Error('Error resetting password.');
+            // 2) Always parse the JSON
+            const body = await res.json();
 
-            setMessage('Your password has been successfully reset.');
+            // 3) If it wasn’t ok, throw using the returned message
+            if (!res.ok) {
+                throw new Error(body.message || 'Error resetting password');
+            }
+
+            // 4) Otherwise show success
+            setMessage(body.message || 'Your password has been successfully reset.');
+
         } catch (err) {
             setError(err.message);
         }
     };
+
 
     const handleBackToSignIn = () => navigate('/signin');
 

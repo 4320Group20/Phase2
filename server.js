@@ -420,6 +420,52 @@ app.post('/login', async (req, res) => {
     }
 });
 
+app.post('/api/reset-password', async (req, res) => {
+    const { username, previousPassword, newPassword } = req.body;
+    if (!username || !previousPassword || !newPassword) {
+        return res.status(400).json({ message: 'username, previousPassword and newPassword are all required.' });
+    }
+
+    try {
+        // 1) Look up the non‐admin user (join into userpassword)
+        const row = db.prepare(`
+                  SELECT nu.nonadminuser_id AS userId,
+                         up.userpassword_id  AS pwdId,
+                         up.encrypted_password
+                  FROM nonadminuser nu
+                  JOIN userpassword up
+                    ON nu.userpassword_id = up.userpassword_id
+                  WHERE nu.username = ?
+    `).get(username);
+
+        if (!row) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        // 2) Verify their old password
+        const ok = await bcrypt.compare(previousPassword, row.encrypted_password);
+        if (!ok) {
+            return res.status(401).json({ message: 'Previous password is incorrect.' });
+        }
+
+        // 3) Hash the new password & update
+        const newHash = await bcrypt.hash(newPassword, 10);
+        db.prepare(`
+                UPDATE userpassword
+                    SET encrypted_password    = ?,
+                        password_expiry_time   = 90,                  -- reset expiry window
+                        user_account_expiry_date = DATE('now','+90 days')
+                WHERE userpassword_id = ?
+    `).run(newHash, row.pwdId);
+
+        // 4) Done
+        return res.json({ message: 'Password has been successfully reset.' });
+    } catch (err) {
+        console.error('Reset‐password error:', err);
+        return res.status(500).json({ message: 'Internal server error.' });
+    }
+});
+
 // --- TRANSACTIONS --- //
 app.post('/transactions', (req, res) => {
     try {
