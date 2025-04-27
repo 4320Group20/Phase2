@@ -7,7 +7,7 @@ const reportRoutes = require('./routes/ReportRoutes');
 const groupRoutes = require('./routes/GroupRoutes');
 const accountRoutes = require('./routes/AccountRoutes');
 const app = express();
-//
+
 // Routes and Parsing
 app.use(express.json());
 app.use(cors());

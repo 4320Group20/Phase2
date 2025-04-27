@@ -18,23 +18,27 @@ const SignUp = () => {
     document.body.style.fontFamily = 'Roboto, sans-serif';
   }, []);
 
+  // New Signup submission
   const handleSignUp = async (e) => {
-      const res = await fetch('http://localhost:5000/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, username, address, email, password })
-      });
+    
+    // Create new user
+    const res = await fetch('http://localhost:5000/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, username, address, email, password })
+    });
 
-      const text = await res.text();
-      console.log(' /register raw response text:', text);
-      let data;
-      try {
-          data = JSON.parse(text);
-      } catch (e) {
-          console.error(' /register didn’t return JSON:', e);
-          throw new Error('Invalid JSON from server—see console.');
-      }
-      console.log(' /register parsed JSON:', data);
+    // Display results
+    const text = await res.text();
+    console.log(' /register raw response text:', text);
+    let data;
+    try {
+        data = JSON.parse(text);
+    } catch (e) {
+        console.error(' /register didn’t return JSON:', e);
+        throw new Error('Invalid JSON from server—see console.');
+    }
+    console.log(' /register parsed JSON:', data);
 
   };
 

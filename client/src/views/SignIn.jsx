@@ -40,14 +40,14 @@ const SignIn = () => {
               console.log(' Parsed JSON:', data);
           } catch (err) {
               console.error(' JSON.parse failed:', err);
-              throw new Error('Server didn’t return valid JSON. See console for raw text.');
+              throw new Error('Server didnt return valid JSON. See console for raw text.');
           }
 
           if (!res.ok) {
               throw new Error(data.message || 'Login failed');
           }
 
-          // Success! Store & redirect
+          // Store & redirect
           localStorage.setItem('userId', data.userId);
           localStorage.setItem('userName', data.name);
           localStorage.setItem('admin', data.admin ? 'true' : 'false');

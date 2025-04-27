@@ -11,16 +11,20 @@ const calculateTotal = (lines, type) => {
     }, 0);
 };
 
+// Add a new transaction
 exports.addTransaction = (req, res) => {
     const { transactionData, lines } = req.body;
 
+    // Calculates total debit and credit amounts from transaction lines
     const totalDebit = calculateTotal(lines, 'debit');
     const totalCredit = calculateTotal(lines, 'credit');
 
+    // If unbalanced, error 
     if (totalDebit !== totalCredit) {
         return res.status(400).json({ message: 'Transaction must be balanced: debit and credit must be equal.' });
     }
 
+    // Create a new transaction
     const newTransaction = new Transaction(
         transactionData.id,
         transactionData.date,
@@ -28,6 +32,7 @@ exports.addTransaction = (req, res) => {
         lines
     );
 
+    // Reply completed transaction to client
     transactions.push(newTransaction);
     res.status(201).json(newTransaction);
 };

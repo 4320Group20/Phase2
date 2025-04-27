@@ -19,6 +19,7 @@ function ChartPageWrapper() {
         />
     );
 }
+
 function App() {
   return (
     <Router>

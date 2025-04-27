@@ -87,6 +87,6 @@ db.exec(`
     transaction_id INTEGER NOT NULL,
     FOREIGN KEY (transaction_id) REFERENCES "transaction"(transaction_id),
   );
-`); // TODO: This doesn't seem to connect in any way to the accounts...
+`);
 
 console.log('DB Successfully initialized');

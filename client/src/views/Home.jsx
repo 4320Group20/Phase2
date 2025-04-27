@@ -2,8 +2,20 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import bgImage from '../assets/webBackground.webp';
 
+const LogOut = () => {
+    return (
+        <button onClick={() => {
+            localStorage.clear();
+            window.location.reload();
+        }}>
+            Log Out
+        </button>
+    );
+};
+
 const Home = () => {
     const name = localStorage.getItem('userName');
+    const isSignedIn = name != undefined;
 
     const isAdmin = localStorage.getItem('admin') === 'true';
     return (
@@ -13,38 +25,43 @@ const Home = () => {
                 <div style={styles.signInButtonWrapper}>
                     <Link to="/signin" style={styles.primaryButton}>Sign In</Link>
                 </div>
+                <div style={styles.signInButtonWrapper}>
+                    <LogOut></LogOut>
+                </div>
 
                 {/* Main Content */}
                 <h1 style={styles.title}>iFINANCE App</h1>
                 <h2 style={styles.subtitle}>Welcome to the iFINANCE Management System</h2>
                 <h3>
-                    {name
+                    {isSignedIn
                         ? `Welcome, ${name}!`
                         : `Welcome!`}
                 </h3>
                 <nav>
-                    <ul style={{ listStyleType: 'none', padding: 0 }}>
-                        {isAdmin && (
+                    {isSignedIn && (
+                        <ul style={{ listStyleType: 'none', padding: 0 }}>
+                            {isAdmin && (
+                                <li>
+                                    <Link to="/manage-users" style={styles.linkButton}>Manage Users</Link>
+                                </li>
+                            )}
                             <li>
-                                <Link to="/manage-users" style={styles.linkButton}>Manage Users</Link>
+                                <Link to="/transactions/new" style={styles.linkButton}>Create Transaction</Link>
                             </li>
-                        )}
-                        <li>
-                            <Link to="/transactions/new" style={styles.linkButton}>Create Transaction</Link>
-                        </li>
-                        <li>
-                            <Link to="/transactions/history" style={styles.linkButton}>View Transaction History</Link>
-                        </li>
-                        <li>
-                            <Link to="/report" style={styles.linkButton}>View Financial Report</Link>
-                        </li>
-                        <li>
-                            <Link to="/account-groups" style={styles.linkButton}>Go to Accounts Groups</Link>
-                        </li>
-                        <li>
-                            <Link to="/chart-of-accounts" style={styles.linkButton}>Go to Chart of Accounts</Link>
-                        </li>
-                    </ul>
+                            <li>
+                                <Link to="/transactions/history" style={styles.linkButton}>View Transaction History</Link>
+                            </li>
+                            <li>
+                                <Link to="/report" style={styles.linkButton}>View Financial Report</Link>
+                            </li>
+                            <li>
+                                <Link to="/account-groups" style={styles.linkButton}>Go to Accounts Groups</Link>
+                            </li>
+                            <li>
+                                <Link to="/chart-of-accounts" style={styles.linkButton}>Go to Chart of Accounts</Link>
+                            </li>
+                        </ul>
+                    )}
                 </nav>
             </div>
         </div>

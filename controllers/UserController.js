@@ -1,24 +1,6 @@
 const NonAdminUser = require('../models/NonAdminUser');
-const Administrator = require('../models/Administrator');
 const UserPassword = require('../models/UserPassword');
-const crypto = require('crypto');//TODO: Fix this stuff... 
-// import bcrypt from 'bcrypt'; 
-
-// In-memory storage (simulate DB tables)
-const registeredUsers = [];
-const passwords = [];
-
-// Check username uniqueness
-const isUsernameTaken = (userName) =>
-    passwords.some(pw => pw.userName === userName);
-
-// SHA-256 hash -> hex
-const encryptPassword = (password) =>
-    new Promise((resolve, reject) => {
-        const hash = crypto.createHash('sha256');
-        hash.update(password);
-        resolve(hash.digest('hex'));
-    });
+const bcrypt = require('bcrypt');
 
 const updatePasswordInDB = (userId, newPassword) => {
     const salt = bcrypt.genSalt(10);
@@ -49,7 +31,7 @@ exports.registerUser = (req, res) => {
             return res.status(400).json({ message: 'Username already exists.' });
         }
 
-        const hash = 'EpicHash'; // await bcrypt.hash(password, 10); TODO: FIX THIS!!!
+        const hash = bcrypt.hashSync(password, 10);
         const password_obj = UserPassword.createUserPassword({
             encryptedPassword: hash,
             passwordExpiryTime: 90,                   // default days
@@ -57,12 +39,12 @@ exports.registerUser = (req, res) => {
         });
         const password_id = password_obj.lastInsertRowid;
 
-        // insert into users table
+        // Call model to insert into DB
         const user = NonAdminUser.createUser({ name: name, username: username, address: address, email: email, password_id: password_id});
 
         return res.status(201).json({
             message: 'User registered.',
-            user: { name, username, address, email }
+            user: user
         });
 
     } catch (err) {
@@ -79,25 +61,24 @@ exports.authenticate = (req, res) => {
     }
 
     try {
-        // 1) look up user row by username -> get { id, � }
+        // look up user row by username -> get { id }
         const user = NonAdminUser.getUserByUsername(username);
         if (!user) {
             return res.status(401).json({ message: 'Invalid credentials.' });
         }
 
-        // 2) look up their hashed password by user.id
+        // look up their hashed password by user.id
         const pwRec = UserPassword.getUserPasswordById(user.id);
         if (!pwRec) {
             return res.status(500).json({ message: 'Password record missing.' });
         }
 
-        // 3) bcrypt compare
+        // bcrypt compare
         const ok = bcrypt.compare(password, pwRec.encryptedPassword);
         if (!ok) {
             return res.status(401).json({ message: 'Invalid credentials.' });
         }
 
-        // 4) success!
         return res.json({
             message: 'Login successful.',
             userId: user.id,

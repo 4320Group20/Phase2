@@ -1,6 +1,7 @@
 const db = require('../db');
 
 module.exports = {
+    // Create a new password
     createUserPassword: ({ encryptedPassword, passwordExpiryTime, userAccountExpiryDate }) => {
         const q = db.prepare(`
             INSERT INTO userpassword (encrypted_Password, password_Expiry_Time, user_Account_Expiry_Date)
@@ -10,16 +11,19 @@ module.exports = {
         return result;
     },
 
+    // Get all passwords
     getAllUserPasswords: () => {
         const query = db.prepare(`SELECT * FROM userpassword`);
         return query.all();
     },
 
+    // Get password by id
     getUserPasswordById: (id) => {
         const query = db.prepare(`SELECT * FROM userpassword WHERE id = ?`);
         return query.get(id);
     },
 
+    // Get password by username
     getByUserName: (username) => {
         const query = db.prepare(`
             SELECT up.*
@@ -27,9 +31,10 @@ module.exports = {
             JOIN nonadminuser u ON u.userpassword_id = up.userpassword_id
             WHERE u.username = ?
           `);
-          const userPassword = query.get(username);
+        return query.get(username);
     },
 
+    // Update password by id
     updateUserPassword: (id, newData) => {
         const query = db.prepare(`
             UPDATE userpassword
@@ -46,6 +51,7 @@ module.exports = {
         return { id, ...newData };
     },
 
+    // Delete password by id
     deleteUserPassword: (id) => {
         const query = db.prepare(`DELETE FROM userpassword WHERE id = ?`);
         const result = query.run(id);
