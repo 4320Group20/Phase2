@@ -49,8 +49,14 @@ const SignIn = () => {
 
           // Store & redirect
           localStorage.setItem('userId', data.userId);
-          localStorage.setItem('userName', data.name);
-          localStorage.setItem('admin', data.admin ? 'true' : 'false');
+          if (data.admin) {
+            localStorage.setItem('userName', 'Admin');
+            localStorage.setItem('admin', 'true');
+          }
+          else {
+            localStorage.setItem('userName', data.name);
+            localStorage.setItem('admin', 'false');
+          }
           navigate('/');
       } catch (err) {
           console.error('handleSignIn error:', err);

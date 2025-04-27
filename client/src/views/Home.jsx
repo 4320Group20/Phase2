@@ -2,17 +2,6 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import bgImage from '../assets/webBackground.webp';
 
-const LogOut = () => {
-    return (
-        <button onClick={() => {
-            localStorage.clear();
-            window.location.reload();
-        }}>
-            Log Out
-        </button>
-    );
-};
-
 const Home = () => {
     const name = localStorage.getItem('userName');
     const isSignedIn = name != undefined;
@@ -24,9 +13,6 @@ const Home = () => {
                 {/* Sign In Button at the top left */}
                 <div style={styles.signInButtonWrapper}>
                     <Link to="/signin" style={styles.primaryButton}>Sign In</Link>
-                </div>
-                <div style={styles.signInButtonWrapper}>
-                    <LogOut></LogOut>
                 </div>
 
                 {/* Main Content */}
