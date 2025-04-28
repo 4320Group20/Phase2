@@ -77,7 +77,7 @@ const AccountGroupsControl = () => {
     const addGroup = () => {
         if (!grpName.trim()) return setError('Group name required');
         if (!selectedCat) return setError('Select a category first');
-        fetch(`http://localhost:5000/api/groups/add`, {
+        fetch(`http://localhost:5000/api/groups/create`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name: grpName, category_id: Number(selectedCat), parent_masteraccount_id: null, parent_group_id: null })
         })
@@ -100,7 +100,7 @@ const AccountGroupsControl = () => {
 
     const deleteGroup = () => {
         if (!selectedGroup) return setError('Select a group');
-        fetch(`http://localhost:5000/api/groups/delete/${selectedGroup}`, { method: 'DELETE' })
+        fetch(`http://localhost:5000/api/groups/${selectedGroup}`, { method: 'DELETE' })
             .then(res => res.ok ? reloadGroups() : res.text().then(t => Promise.reject(t)))
             .catch(msg => setError(msg));
     };

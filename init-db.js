@@ -19,8 +19,8 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS "group" (
     group_id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR(255) NOT NULL,
-    parent_masteraccount_id INTEGER NOT NULL,
-    parent_group_id INTEGER NOT NULL,
+    parent_masteraccount_id INTEGER,
+    parent_group_id INTEGER,
     category_id INTEGER NOT NULL,
     FOREIGN KEY (parent_masteraccount_id) REFERENCES masteraccount(masteraccount_id)
       ON DELETE CASCADE,
@@ -62,7 +62,7 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS accountcategory (
     accountcategory_id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR(255) NOT NULL,
-    type VARCHAR(255) NOT NULL,
+    type VARCHAR(255),
     group_id INTEGER DEFAULT NULL,
     FOREIGN KEY (group_id) REFERENCES "group"(group_id)
       ON DELETE SET NULL

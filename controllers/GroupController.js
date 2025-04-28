@@ -67,7 +67,7 @@ exports.updateGroup = (req, res) => {
 exports.deleteGroup = (req, res) => {
     const id = Number(req.params.id);
     try {
-        const info = deleteGroup(id);
+        const info = Group.deleteGroup(id);
         if (info.changes === 0) {
             return res.status(404).json({ message: 'Group not found.' });
         }
