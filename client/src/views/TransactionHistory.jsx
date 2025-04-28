@@ -23,7 +23,7 @@ function TransactionHistory() {
 
     useEffect(() => {
         const userId = Number(localStorage.getItem('userId'));
-        fetch(`http://localhost:5000/transactions?userId=${userId}`)
+        fetch(`http://localhost:5000/transactions/all?userId=${userId}`)
             .then(res => {
                 if (!res.ok) throw new Error(`Error fetching transactions: ${res.status}`);
                 return res.json();
