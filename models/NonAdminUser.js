@@ -57,7 +57,7 @@ module.exports = {
     },
 
     deleteUser: (id) => {
-        const query = db.prepare(`DELETE FROM nonadminuser WHERE id = ?`);
+        const query = db.prepare(`DELETE FROM nonadminuser WHERE nonadminuser_id = ?`);
         const result = query.run(id);
         return { deleted: result.changes > 0 };
     },

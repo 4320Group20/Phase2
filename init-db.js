@@ -45,8 +45,7 @@ db.exec(`
     address VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     userpassword_id INTEGER NOT NULL,
-    FOREIGN KEY (userpassword_id) REFERENCES userpassword(userpassword_id)
-      ON DELETE CASCADE
+    FOREIGN KEY (userpassword_id) REFERENCES userpassword(userpassword_id) ON DELETE CASCADE
   );
 `);
 
@@ -75,7 +74,7 @@ db.exec(`
     date VARCHAR(255) NOT NULL,
     description VARCHAR(255) NOT NULL,
     user_id INTEGER NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES nonadminuser(nonadminuser_id)
+    FOREIGN KEY (user_id) REFERENCES nonadminuser(nonadminuser_id) ON DELETE CASCADE
   );
 `);
 
@@ -86,7 +85,7 @@ db.exec(`
     debited_amount DOUBLE NOT NULL,
     comments VARCHAR(255) NOT NULL,
     transaction_id INTEGER NOT NULL,
-    FOREIGN KEY (transaction_id) REFERENCES "transaction"(transaction_id)
+    FOREIGN KEY (transaction_id) REFERENCES "transaction"(transaction_id) ON DELETE CASCADE
   );
 `);
 

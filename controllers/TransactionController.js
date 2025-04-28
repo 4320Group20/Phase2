@@ -47,6 +47,8 @@ exports.getAllTransactions = (req, res) => {
         // Fetch all transaction+lines, then group by transaction
         const rows = Transaction.getAllInfosByUID(userId);
 
+        console.log(userId);
+        console.log(rows);
         const txMap = {};
         rows.forEach(r => {
             if (!txMap[r.id]) {
