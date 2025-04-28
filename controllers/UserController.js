@@ -6,16 +6,19 @@ const bcrypt = require('bcrypt');
 /**
  * UserController Class
  * 
- * Handles user registration, authentication, and password change operations:
+ * Handles user registration, authentication, password change operations, and user management in the iFINANCE system:
+ * 
+ * Methods:
+ * - `getAllUsers`: Fetches all non-admin users.
+ * - `updateUser`: Updates the name, address, and email of an existing non-admin user.
+ * - `deleteUser`: Deletes a specified non-admin user and their associated password record.
  * - `registerUser`: Registers a new user with their details and hashed password.
- * - `authenticate`: Authenticates a user by verifying their credentials.
- * - `changePassword`: Changes the user's password after validating the old password and ensuring the new passwords match.
+ * - `login`: Authenticates a user by verifying their username and password, distinguishing between admin and non-admin users.
+ * - `resetPassword`: Resets the user's password after verifying the old password and ensuring the new password is hashed and updated.
  * 
- * Utility:
- * - `updatePasswordInDB`: Updates the user's password in the database after hashing it.
- * 
- * Each method ensures validation, proper error handling, and secure password storage using bcrypt.
+ * Each method ensures proper validation, error handling, and secure password management using bcrypt. Responses are appropriately formatted with success or error messages.
  */
+
 
 
 exports.getAllUsers = (req, res) => {

@@ -1,5 +1,18 @@
 const Category = require("../models/Category");
 
+/**
+ * Category Controller
+ * 
+ * Handles CRUD operations for categories in the iFINANCE system:
+ * - `getAllCategories`: Retrieves all categories from the database.
+ * - `createCategory`: Adds a new category, ensuring that the name is provided.
+ * - `updateCategory`: Updates the name and/or type of an existing category.
+ * - `deleteCategory`: Deletes a category by ID.
+ * 
+ * Each method handles potential errors and returns appropriate responses with HTTP status codes.
+ */
+
+
 exports.getAllCategories = (req, res) => {
     try {
         const cats = Category.getAllCategories();

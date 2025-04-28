@@ -4,7 +4,7 @@ const TransactionLine = require('../models/TransactionLine');
 /**
  * TransactionController Class
  * 
- * Handles CRUD operations for transactions:
+ * Handles CRUD operations for transactions in the iFINANCE system:
  * - `addTransaction`: Adds a new transaction, ensuring it is balanced (debit and credit are equal).
  * - `editTransaction`: Edits an existing transaction, ensuring the edited transaction remains balanced.
  * - `deleteTransaction`: Deletes a specified transaction.
@@ -14,6 +14,7 @@ const TransactionLine = require('../models/TransactionLine');
  * 
  * Each method handles potential errors, ensuring transactions remain balanced before adding or updating them.
  */
+
 
 // Add a new transaction
 exports.addTransaction = (req, res) => {

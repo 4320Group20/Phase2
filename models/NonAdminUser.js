@@ -4,14 +4,18 @@ const db = require('../db');
  * 
  * Provides functions for managing non-admin users in the iFINANCE system:
  * - `createUser`: Inserts a new non-admin user into the database.
- * - `getAllUsers`: Retrieves all non-admin users from the database.
- * - `getUserById`: Retrieves a specific non-admin user by ID.
+ * - `getAllUsers`: Retrieves all non-admin users along with their password data from the database.
+ * - `getAllUserInfos`: Retrieves basic user information (excluding passwords) from the database.
+ * - `getUserPasswordById`: Retrieves the user password ID by non-admin user ID.
  * - `updateUser`: Updates the name, address, and email of an existing non-admin user.
  * - `deleteUser`: Deletes a non-admin user by ID.
  * - `getUserByUsername`: Retrieves a specific non-admin user by username.
+ * - `getUserInfoByUsername`: Retrieves user info including password data by username.
+ * - `getUserInfoJoined`: Retrieves user info and password details for a specific username (with joined table).
  * 
  * Each function interacts with the database and returns the result of the operation.
  */
+
 
 module.exports = {
     createUser: (name, username, address, email, userpassword_id) => {

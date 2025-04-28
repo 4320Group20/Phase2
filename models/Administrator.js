@@ -3,15 +3,12 @@ const db = require('../db');
 /**
  * Administrator Model
  * 
- * Provides functions for managing administrators in the database:
- * - `createAdministrator`: Inserts a new administrator into the database.
- * - `getAllAdministrators`: Retrieves all administrators from the database.
- * - `getAdministratorById`: Retrieves a specific administrator by ID.
- * - `updateAdministrator`: Updates the name, date hired, and date finished of an existing administrator.
- * - `deleteAdministrator`: Deletes an administrator by ID.
+ * Provides a function for managing administrators in the database:
+ * - `getAdministratorByUsername`: Retrieves an administrator by their username, including their ID and encrypted password.
  * 
  * Each function interacts with the database and returns the result of the operation.
  */
+
 
 module.exports = {
     getAdministratorByUsername: (username) => {

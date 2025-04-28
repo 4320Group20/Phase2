@@ -3,14 +3,15 @@ const db = require('../db');
  * MasterAccount Model
  * 
  * Provides functions for managing master accounts in the iFINANCE system:
- * - `createMasterAccount`: Inserts a new master account into the database.
- * - `getAllMasterAccounts`: Retrieves all master accounts from the database.
- * - `getMasterAccountById`: Retrieves a specific master account by ID.
- * - `updateMasterAccount`: Updates the name, opening amount, and closing amount of an existing master account.
- * - `deleteMasterAccount`: Deletes a master account by ID.
+ * - `getAll`: Retrieves all master accounts from the database.
+ * - `create`: Inserts a new master account into the database.
+ * - `getByID`: Retrieves a specific master account by ID.
+ * - `update`: Updates the name, opening amount, closing amount, and parent group of an existing master account.
+ * - `delete`: Deletes a master account by ID.
  * 
  * Each function interacts with the database and returns the result of the operation.
  */
+
 
 module.exports = {
     getAll: () => {

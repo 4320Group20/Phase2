@@ -4,13 +4,14 @@ const MasterAccount = require('../models/MasterAccount');
  * MasterAccount Controller
  * 
  * Handles CRUD operations for MasterAccount:
- * - `getAllMasterAccounts`: Fetches and returns all master accounts.
- * - `addMasterAccount`: Adds a new master account.
- * - `editMasterAccount`: Updates an existing master account.
- * - `deleteMasterAccount`: Deletes a master account.
+ * - `getAllMasterAccounts`: Fetches and returns all master accounts from the database.
+ * - `createMasterAccount`: Adds a new master account, ensuring required fields are provided.
+ * - `updateMasterAccount`: Updates an existing master account with optional fields (name, opening amount, parent group ID).
+ * - `deleteMasterAccount`: Deletes a master account by ID.
  * 
  * Each method handles potential errors and returns appropriate responses with HTTP status codes.
  */
+
 
 
 exports.getAllMasterAccounts = (req, res) => {

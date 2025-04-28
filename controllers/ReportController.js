@@ -22,7 +22,7 @@ exports.generate = (req, res) => {
         if (!reportType || !startDate || !endDate) {
             return res.status(400).json({ message: 'reportType, startDate, and endDate are required.' });
         }
-        
+
         // Pull all lines in the date range
         const rows = Transaction.getAllTransactionsByDate(userId, startDate, endDate);
 

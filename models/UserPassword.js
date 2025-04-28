@@ -3,15 +3,16 @@ const db = require('../db');
  * UserPassword Model
  * 
  * Provides functions for managing user passwords in the iFINANCE system:
- * - `createUserPassword`: Inserts a new user password record into the database.
+ * - `createUserPassword`: Inserts a new user password record into the database with hashed password, expiry time, and account expiry date.
  * - `getAllUserPasswords`: Retrieves all user password records from the database.
  * - `getUserPasswordById`: Retrieves a specific user password by ID.
  * - `getByUserName`: Retrieves a user password by the associated username.
- * - `updateUserPassword`: Updates the password, expiry time, and account expiry date for a user.
+ * - `updateUserPassword`: Updates the password, expiry time (default 90 days), and account expiry date (default 90 days from current date) for a user.
  * - `deleteUserPassword`: Deletes a user password record by ID.
  * 
  * Each function interacts with the database and returns the result of the operation.
  */
+
 
 module.exports = {
     // Create a new password

@@ -12,6 +12,7 @@ const db = require('../db');
  * Each function interacts with the database and returns the result of the operation.
  */
 
+
 module.exports = {
     createUser: (userData) => {
         const query = db.prepare(`
