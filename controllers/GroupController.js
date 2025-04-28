@@ -11,63 +11,27 @@ const AccountCategory = require('../models/Category');
  * 
  * Each method handles errors and returns appropriate HTTP status codes and messages.
  */
-exports.getTreeViewData = (req, res) => {
+exports.getGroups = (req, res) => {
     try {
-        const categories = AccountCategory.find();
-        const groups = Group.find();
-
-        const tree = {};
-
-        for (const category of categories) {
-            tree[category.name] = groups
-                .filter(group => group.categoryId.toString() === category._id.toString())
-                .map(group => ({ id: group._id, name: group.name }));
-        }
-
-        res.json(tree);
+        const gs = Group.getAllGroupsWithCategories();
+        res.json({ groups: gs });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        console.error(err);
+        res.status(500).json({ message: 'Could not fetch groups.' });
     }
 };
 
-exports.addGroup = (req, res) => {
-    const { name, categoryId } = req.body;
-
-    try {
-        const newGroup = new Group({ name, categoryId });
-        newGroup.save();
-        res.status(201).json(newGroup);
-    } catch (err) {
-        res.status(400).json({ message: err.message });
+exports.createGroup = (req, res) => {
+    const { name, category_id, parent_group_id } = req.body;
+    if (!name || !category_id) {
+        return res.status(400).json({ message: 'Name and category_id are required.' });
     }
-};
-
-exports.editGroup = (req, res) => {
-    const { groupId } = req.params;
-    const { newName } = req.body;
-
     try {
-        const group = Group.findById(groupId);
-        if (!group) return res.status(404).json({ message: 'Group not found' });
-
-        group.name = newName;
-        group.save();
-
-        res.json(group);
+        const info = Group.createGroup(name, category_id, parent_group_id);
+        const g = Group.getGroupByID(info.lastInsertRowid);
+        res.status(201).json({ group: g });
     } catch (err) {
-        res.status(400).json({ message: err.message });
-    }
-};
-
-exports.deleteGroup = (req, res) => {
-    const { groupId } = req.params;
-
-    try {
-        const group = Group.findByIdAndDelete(groupId);
-        if (!group) return res.status(404).json({ message: 'Group not found' });
-
-        res.json({ message: 'Group deleted', group });
-    } catch (err) {
-        res.status(500).json({ message: err.message });
+        console.error(err);
+        res.status(500).json({ message: 'Could not create group.' });
     }
 };

@@ -14,38 +14,38 @@ const db = require('../db');
  */
 
 module.exports = {
-    createGroup: (groupData) => {
-        const query = db.prepare(`
-            INSERT INTO groups (id, name)
-            VALUES (?, ?)
-        `);
-        query.run(groupData.id, groupData.name);
-        return { id: groupData.id, ...groupData };
+    getAllGroupsWithCategories: () => {
+        const gs = db.prepare(`
+            SELECT
+              g.group_id,
+              g.name,
+              g.category_id,
+              c.name AS category_name,
+              g.parent_group_id
+            FROM "group" g
+            JOIN accountcategory c
+              ON g.category_id = c.accountcategory_id`
+        ).all();
+        return gs;
     },
 
-    getAllGroups: () => {
-        const query = db.prepare(`SELECT * FROM groups`);
-        return query.all();
+    createGroup: (name, category_id, parent_group_id) => {
+        const info = db.prepare(`
+            INSERT INTO "group" (name, category_id, parent_group_id)
+            VALUES (?, ?, ?)`
+        ).run(name, category_id, parent_group_id || null);
+
+        return info;
     },
 
-    getGroupById: (id) => {
-        const query = db.prepare(`SELECT * FROM groups WHERE id = ?`);
-        return query.get(id);
-    },
+    getGroupByID: (id) => {
+        const g = db.prepare(`
+            SELECT
+              group_id, name, category_id, parent_group_id
+            FROM "group"
+            WHERE group_id = ?`
+        ).get(id);
 
-    updateGroup: (id, newData) => {
-        const query = db.prepare(`
-            UPDATE groups
-            SET name = ?
-            WHERE id = ?
-        `);
-        query.run(newData.name, id);
-        return { id, ...newData };
-    },
-
-    deleteGroup: (id) => {
-        const query = db.prepare(`DELETE FROM groups WHERE id = ?`);
-        const result = query.run(id);
-        return { deleted: result.changes > 0 };
+        return g;
     }
 };
