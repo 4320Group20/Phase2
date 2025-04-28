@@ -30,14 +30,14 @@ const AccountGroupsControl = () => {
     }, []);
 
     const reloadCategories = () => {
-        fetch(`${API}/account-categories`)
+        fetch(`http://localhost:5000/api/categories/all`)
             .then(res => res.ok ? res.json() : Promise.reject('Could not load categories'))
             .then(json => setCategories(json.categories || []))
             .catch(msg => setError(msg));
     };
 
     const reloadGroups = () => {
-        fetch(`${API}/groups`)
+        fetch(`http://localhost:5000/api/groups/`)
             .then(res => res.ok ? res.json() : Promise.reject('Could not load groups'))
             .then(json => setGroups(json.groups || []))
             .catch(msg => setError(msg));
@@ -46,7 +46,7 @@ const AccountGroupsControl = () => {
     // Category CRUD
     const addCategory = () => {
         if (!catName.trim()) return setError('Category name required');
-        fetch(`${API}/account-categories`, {
+        fetch(`http://localhost:5000/api/categories/create`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name: catName })
         })
@@ -59,7 +59,7 @@ const AccountGroupsControl = () => {
         if (!selectedCat) return setError('Select a category');
         const newName = prompt('New category name');
         if (!newName) return;
-        fetch(`${API}/account-categories/${selectedCat}`, {
+        fetch(`http://localhost:5000/api/categories/${selectedCat}`, {
             method: 'PUT', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name: newName })
         })
@@ -69,7 +69,7 @@ const AccountGroupsControl = () => {
 
     const deleteCategory = () => {
         if (!selectedCat) return setError('Select a category');
-        fetch(`${API}/account-categories/${selectedCat}`, { method: 'DELETE' })
+        fetch(`http://localhost:5000/api/categories/${selectedCat}`, { method: 'DELETE' })
             .then(res => res.ok ? reloadCategories() : res.text().then(t => Promise.reject(t)))
             .catch(msg => setError(msg));
     };
@@ -91,7 +91,7 @@ const AccountGroupsControl = () => {
         if (!selectedGroup) return setError('Select a group');
         const newName = prompt('New group name');
         if (!newName) return;
-        fetch(`http://localhost:5000/api/groups/edit${selectedGroup}`, {
+        fetch(`http://localhost:5000/api/groups/edit/${selectedGroup}`, {
             method: 'PUT', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name: newName })
         })
@@ -101,7 +101,7 @@ const AccountGroupsControl = () => {
 
     const deleteGroup = () => {
         if (!selectedGroup) return setError('Select a group');
-        fetch(`http://localhost:5000/api/groups/delete${selectedGroup}`, { method: 'DELETE' })
+        fetch(`http://localhost:5000/api/groups/delete/${selectedGroup}`, { method: 'DELETE' })
             .then(res => res.ok ? reloadGroups() : res.text().then(t => Promise.reject(t)))
             .catch(msg => setError(msg));
     };
