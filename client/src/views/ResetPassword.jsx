@@ -32,37 +32,41 @@ const ResetPassword = () => {
         document.body.style.fontFamily = 'Roboto, sans-serif';
     }, []);
 
+    // Redirect to sign in after 3 seconds when password reset succeeds
+    useEffect(() => {
+        if (message) {
+            const timer = setTimeout(() => {
+                navigate('/signin');
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [message]);
+
     const handleResetPassword = async (e) => {
         e.preventDefault();
         setError(null);
         setMessage('');
 
         try {
-            // 1) Hit your actual server
             const res = await fetch('http://localhost:5000/api/reset-password', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, previousPassword, newPassword })
             });
 
-            // 2) Always parse the JSON
             const body = await res.json();
 
-            // 3) If it wasn’t ok, throw using the returned message
             if (!res.ok) {
                 throw new Error(body.message || 'Error resetting password');
             }
 
-            // 4) Otherwise show success
             setMessage(body.message || 'Your password has been successfully reset.');
-
         } catch (err) {
             setError(err.message);
         }
     };
 
-
-    const handleBackToSignIn = () => navigate('/signin');
+    const handleBackToHome = () => navigate('/signin');
 
     return (
         <div style={styles.page}>
@@ -71,7 +75,13 @@ const ResetPassword = () => {
                 <h2 style={styles.subtitle}>Reset Password</h2>
 
                 {error && <div style={styles.error}>{error}</div>}
-                {message && <div style={styles.success}>{message}</div>}
+                {message && (
+                    <div style={styles.success}>
+                        {message}
+                        <br />
+                        Redirecting to Sign In...
+                    </div>
+                )}
 
                 <form onSubmit={handleResetPassword}>
                     <input
@@ -107,7 +117,7 @@ const ResetPassword = () => {
                 </form>
 
                 <p style={styles.text}>Remember your password?</p>
-                <button onClick={handleBackToSignIn} style={styles.secondaryButton}>
+                <button onClick={handleBackToHome} style={styles.secondaryButton}>
                     Back to Sign In
                 </button>
             </div>
