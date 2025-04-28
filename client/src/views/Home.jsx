@@ -26,26 +26,28 @@ const Home = () => {
                 <nav>
                     {isSignedIn && (
                         <ul style={{ listStyleType: 'none', padding: 0 }}>
-                            {isAdmin && (
+                            {isAdmin ? (
                                 <li>
                                     <Link to="/manage-users" style={styles.linkButton}>Manage Users</Link>
                                 </li>
-                            )}
-                            <li>
-                                <Link to="/transactions/new" style={styles.linkButton}>Create Transaction</Link>
-                            </li>
-                            <li>
-                                <Link to="/transactions/history" style={styles.linkButton}>View Transaction History</Link>
-                            </li>
-                            <li>
-                                <Link to="/report" style={styles.linkButton}>View Financial Report</Link>
-                            </li>
-                            <li>
-                                <Link to="/account-groups" style={styles.linkButton}>Go to Accounts Groups</Link>
-                            </li>
-                            <li>
-                                <Link to="/chart-of-accounts" style={styles.linkButton}>Go to Chart of Accounts</Link>
-                            </li>
+                            ) :
+                            (<>
+                                <li>
+                                    <Link to="/transactions/new" style={styles.linkButton}>Create Transaction</Link>
+                                </li>
+                                <li>
+                                    <Link to="/transactions/history" style={styles.linkButton}>View Transaction History</Link>
+                                </li>
+                                <li>
+                                    <Link to="/report" style={styles.linkButton}>View Financial Report</Link>
+                                </li>
+                                <li>
+                                    <Link to="/account-groups" style={styles.linkButton}>Go to Accounts Groups</Link>
+                                </li>
+                                <li>
+                                    <Link to="/chart-of-accounts" style={styles.linkButton}>Go to Chart of Accounts</Link>
+                                </li>
+                            </>)}
                         </ul>
                     )}
                 </nav>
