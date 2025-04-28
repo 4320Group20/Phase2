@@ -1,6 +1,23 @@
 const Transaction = require('../models/Transaction');
 
+/**
+ * TransactionController Class
+ * 
+ * Handles CRUD operations for transactions:
+ * - `addTransaction`: Adds a new transaction, ensuring it is balanced (debit and credit are equal).
+ * - `editTransaction`: Edits an existing transaction, ensuring the edited transaction remains balanced.
+ * - `deleteTransaction`: Deletes a specified transaction.
+ * 
+ * Utility:
+ * - `calculateTotal`: Calculates the total debit or credit amount from transaction lines.
+ * 
+ * Each method handles potential errors, ensuring transactions remain balanced before adding or updating them.
+ */
+
+
 const transactions = []; // In-memory transactions list
+
+
 
 const calculateTotal = (lines, type) => {
     return lines.reduce((sum, line) => {

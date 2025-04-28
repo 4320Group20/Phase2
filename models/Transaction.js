@@ -1,4 +1,16 @@
 const db = require('../db');
+/**
+ * Transaction Model
+ * 
+ * Provides functions for managing transactions in the iFINANCE system:
+ * - `createTransaction`: Inserts a new transaction into the database.
+ * - `getAllTransactions`: Retrieves all transactions from the database.
+ * - `getTransactionById`: Retrieves a specific transaction by ID.
+ * - `updateTransaction`: Updates the date and description of an existing transaction.
+ * - `deleteTransaction`: Deletes a transaction by ID.
+ * 
+ * Each function interacts with the database and returns the result of the operation.
+ */
 
 module.exports = {
     createTransaction: (transactionData) => {

@@ -2,6 +2,20 @@ const NonAdminUser = require('../models/NonAdminUser');
 const UserPassword = require('../models/UserPassword');
 const bcrypt = require('bcrypt');
 
+/**
+ * UserController Class
+ * 
+ * Handles user registration, authentication, and password change operations:
+ * - `registerUser`: Registers a new user with their details and hashed password.
+ * - `authenticate`: Authenticates a user by verifying their credentials.
+ * - `changePassword`: Changes the user's password after validating the old password and ensuring the new passwords match.
+ * 
+ * Utility:
+ * - `updatePasswordInDB`: Updates the user's password in the database after hashing it.
+ * 
+ * Each method ensures validation, proper error handling, and secure password storage using bcrypt.
+ */
+
 const updatePasswordInDB = (userId, newPassword) => {
     const salt = bcrypt.genSalt(10);
     const hashedPassword = bcrypt.hash(newPassword, salt);

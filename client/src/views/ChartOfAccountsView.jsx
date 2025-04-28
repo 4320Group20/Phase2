@@ -1,5 +1,22 @@
 import React, { useState } from 'react';
 
+/**
+ * ChartOfAccountsView Component
+ * 
+ * Displays and manages a list of accounts and groups. Supports adding, updating, and removing accounts,
+ * and displays the group structure. Allows users to add new master accounts, update account details,
+ * and navigate back using the exit button.
+ * 
+ * Props:
+ * - groups: List of account groups with id, name, and parent info.
+ * - accounts: List of accounts with id, name, opening amount, closing amount, and group association.
+ * - onAddAccount: Callback to add a new account.
+ * - onUpdateAccount: Callback to update account details.
+ * - onRemoveAccount: Callback to remove an account.
+ * - onExit: Callback for exiting the view.
+ * 
+ * returns JSX for account and group management interface.
+ */
 const ChartOfAccountsView = ({
   groups = [],               // [{ id, name, categoryName, parentID? }]
   accounts = [],             // [{ id, name, openingAmount, closingAmount, groupID }]

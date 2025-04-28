@@ -2,6 +2,22 @@
 import { useNavigate } from 'react-router-dom';
 import bgImage from '../assets/webBackground.webp';
 
+/**
+ * SignUp Component
+ * 
+ * Provides functionality for users to create a new account on the iFINANCE app. 
+ * Users can enter their personal information, including full name, address, email, username, and password.
+ * The component sends the user data to the server to create a new account and displays any errors that occur.
+ * 
+ * Features:
+ * - Allows users to input their details to create a new account.
+ * - Displays error messages if account creation fails.
+ * - Provides an option to navigate back to the sign-in page.
+ * 
+ * returns JSX for the sign-up form and actions.
+ */
+
+
 const SignUp = () => {
   const [name, setName]               = useState('');
   const [address, setAddress]         = useState('');

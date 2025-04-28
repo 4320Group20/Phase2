@@ -2,6 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import bgImage from '../assets/webBackground.webp';
 
+
+/**
+ * ManageUsers Component
+ * 
+ * Provides functionality for managing users in the system. Allows the admin to view, create, 
+ * edit, and delete users. The user list is fetched from the server on mount and can be refreshed 
+ * after any changes. Admin actions are displayed with appropriate forms and tables.
+ * 
+ * Features:
+ * - Displays a list of users with options to edit or delete.
+ * - Allows creation of new users through a form.
+ * - Handles errors and displays appropriate messages.
+ * - Admin can edit user details or delete users from the list.
+ * 
+ * returns JSX for managing users in the system.
+ */
+
 const ManageUsers = () => {
     const navigate = useNavigate();
     const [users, setUsers] = useState([]);

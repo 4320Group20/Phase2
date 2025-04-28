@@ -3,6 +3,22 @@ import TransactionLineInput from '../components/TransactionLineInput';
 import { Link } from 'react-router-dom'; // Import for navigation using Link
 import bgImage from '../assets/webBackground.webp';
 
+/**
+ * TransactionForm Component
+ * 
+ * Provides functionality for creating a new financial transaction with multiple transaction lines.
+ * Users can input transaction details (ID, date, description) and add/remove lines for credited 
+ * and debited amounts. The form is validated before submitting the data to the server.
+ * 
+ * Features:
+ * - Allows users to enter transaction details and multiple transaction lines.
+ * - Validates the transaction, ensuring the total debited and credited amounts match.
+ * - Displays any validation errors or submission errors.
+ * - Sends transaction data to the server upon successful validation.
+ * 
+ * returns JSX for the transaction creation form with transaction lines and error handling.
+ */
+
 function TransactionForm() {
     const [transaction, setTransaction] = useState({
         id: '',
@@ -57,6 +73,15 @@ function TransactionForm() {
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.message || 'Failed to submit transaction');
+
+            // Clear the form after submission
+            setTransaction({
+                id: '',
+                date: '',
+                description: '',
+                lines: [],
+            });
+            setErrors([]); // Clear errors
         } catch (err) {
             setErrors([err.message]);
         }

@@ -2,9 +2,25 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import bgImage from '../assets/webBackground.webp';
 
+
+/**
+ * Home Component
+ * 
+ * Displays the home page of the iFINANCE app. Shows a welcome message, and provides navigation 
+ * links based on the user's sign-in status and role (admin or regular user).
+ * 
+ * Features:
+ * - Displays sign-in button for unauthenticated users.
+ * - Shows a personalized welcome message for signed-in users.
+ * - Admins can access the "Manage Users" page.
+ * - Provides links to create transactions, view transaction history, and more.
+ * 
+ * JSX for the home page with navigation links.
+ */
+
 const Home = () => {
     const name = localStorage.getItem('userName');
-    const isSignedIn = name != undefined;
+    const isSignedIn = name !== undefined;
 
     const isAdmin = localStorage.getItem('admin') === 'true';
     return (

@@ -1,5 +1,18 @@
 const db = require('../db');
 
+/**
+ * Group Model
+ * 
+ * Provides functions for managing groups in the database:
+ * - `createGroup`: Inserts a new group into the database.
+ * - `getAllGroups`: Retrieves all groups from the database.
+ * - `getGroupById`: Retrieves a specific group by ID.
+ * - `updateGroup`: Updates the name of an existing group.
+ * - `deleteGroup`: Deletes a group by ID.
+ * 
+ * Each function interacts with the database and returns the result of the operation.
+ */
+
 module.exports = {
     createGroup: (groupData) => {
         const query = db.prepare(`

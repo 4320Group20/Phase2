@@ -1,4 +1,16 @@
 const db = require('../db');
+/**
+ * User Model
+ * 
+ * Provides functions for managing users in the iFINANCE system:
+ * - `createUser`: Inserts a new user into the database.
+ * - `getAllUsers`: Retrieves all users from the database.
+ * - `getUserById`: Retrieves a specific user by ID.
+ * - `updateUser`: Updates the name of an existing user.
+ * - `deleteUser`: Deletes a user by ID.
+ * 
+ * Each function interacts with the database and returns the result of the operation.
+ */
 
 module.exports = {
     createUser: (userData) => {

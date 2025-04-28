@@ -2,6 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import bgImage from '../assets/webBackground.webp';
 
+/**
+ * ResetPassword Component
+ * 
+ * Provides functionality for users to reset their password. The user must input their username, 
+ * previous password, and new password. On successful reset, a success message is shown. Errors 
+ * are displayed if the reset fails.
+ * 
+ * Features:
+ * - Allows users to input their username, previous password, and new password to reset their account password.
+ * - Displays error messages if password reset fails.
+ * - Displays a success message on successful password reset.
+ * - Provides a button to navigate back to the sign-in page.
+ * 
+ * returns JSX for the reset password page with form and feedback messages.
+ */
+
 const ResetPassword = () => {
     const [username, setUsername] = useState('');
     const [previousPassword, setPreviousPassword] = useState('');

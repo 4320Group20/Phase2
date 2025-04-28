@@ -1,6 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
+/**
+ * TransactionHistory Component
+ * 
+ * Displays a list of all transactions for the currently logged-in user. It fetches transaction data 
+ * from the server and shows transaction details including transaction ID, date, description, and 
+ * associated lines (credited and debited amounts with comments).
+ * 
+ * Features:
+ * - Fetches and displays transactions for the logged-in user.
+ * - Shows transaction details and lines for each transaction.
+ * - Displays an error message if the fetch fails.
+ * - Shows a message when no transactions are found.
+ * 
+ * returns JSX for displaying the transaction history with details and error handling.
+ */
+
 function TransactionHistory() {
     const [transactions, setTransactions] = useState([]);
     const [error, setError] = useState(null);

@@ -1,3 +1,19 @@
+
+/**
+ * ReportController Class
+ * 
+ * Handles the generation of different types of reports based on transaction data:
+ * - `generateSummaryReport`: Generates a summary report with total debit and credit amounts.
+ * - `generateAccountReport`: Generates a report for transactions filtered by account type.
+ * - `generateCategoryReport`: Generates a report for transactions filtered by category.
+ * 
+ * Methods:
+ * - `generate`: Processes the report request, filters transactions, and generates the specified report type.
+ * - `filterTransactions`: Filters transactions based on date range criteria.
+ * 
+ * Each report is generated based on the provided criteria and returned as a structured JSON response.
+ */
+
 const filterTransactions = (criteria) => {
     return transactions.filter(t => {
         const date = new Date(t.date);

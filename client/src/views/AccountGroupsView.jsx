@@ -1,6 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import bgImage from '../assets/webBackground.webp';
 
+
+/**
+ * AccountGroupsControl Component
+ * 
+ * Manages account categories and groups. Supports CRUD operations for categories and groups, 
+ * including adding, renaming, and deleting them. Fetches data from an API and displays UI 
+ * for category and group management.
+ * 
+ * State: categories, groups, selectedCat, selectedGroup, catName, grpName, error
+ * 
+ * returns JSX for category and group management UI.
+ */
+
 const AccountGroupsControl = () => {
     const API = 'http://localhost:5000';
     const [categories, setCategories] = useState([]);

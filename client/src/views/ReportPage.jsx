@@ -2,6 +2,22 @@ import React, { useState } from "react";
 import ReportFilterForm from "../components/ReportFilterForm";
 import ReportResult from "../components/ReportResult";
 
+
+/**
+ * ReportPage Component
+ * 
+ * Displays a financial report page with a filter form to generate reports based on user input.
+ * Allows users to export the report using the browser's print functionality.
+ * 
+ * Features:
+ * - Provides a form for filtering report data.
+ * - Fetches and displays generated report data based on selected filters.
+ * - Displays errors if report generation fails.
+ * - Allows users to export the report (client-side print functionality).
+ * 
+ * returns JSX for generating and displaying a financial report.
+ */
+
 const ReportPage = () => {
     const [reportData, setReportData] = useState(null);
     const [error, setError] = useState(null);

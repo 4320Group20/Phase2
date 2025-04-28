@@ -1,6 +1,19 @@
 import bcrypt from 'bcrypt';
 import UserPassword from '../models/UserPassword.js'; // Your Mongoose model
 
+/**
+ * ChangePasswordController Class
+ * 
+ * Handles the logic for changing a user's password. It validates the old password, checks if the
+ * new passwords match, and updates the password in the database.
+ * 
+ * Methods:
+ * - `changePassword`: Validates and changes the user's password.
+ * - `fetchUserPasswordFromDB`: Retrieves the user's password record from the database.
+ * - `updatePasswordInDB`: Updates the user's password in the database with the new hashed password.
+ * 
+ * Returns appropriate success or failure messages based on validation and database operations.
+ */
 class ChangePasswordController {
 
     /**

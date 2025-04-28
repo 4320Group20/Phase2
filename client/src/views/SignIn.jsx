@@ -2,6 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import bgImage from '../assets/webBackground.webp';
 
+/**
+ * SignIn Component
+ * 
+ * Provides functionality for users to sign into the iFINANCE app. The user enters their 
+ * username and password, and the component sends the login credentials to the server for authentication.
+ * If the login is successful, the user is redirected to the home page. Includes options for 
+ * password reset and account creation.
+ * 
+ * Features:
+ * - Allows users to log in with their username and password.
+ * - Displays an error message if login fails.
+ * - Provides a link for users to reset their password or create a new account.
+ * 
+ * returns JSX for the sign-in page with forms and actions.
+ */
+
 const SignIn = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');

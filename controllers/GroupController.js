@@ -1,6 +1,16 @@
 const Group = require('../models/Group');
 const AccountCategory = require('../models/AccountCategory');
-
+/**
+ * GroupController Class
+ * 
+ * Handles CRUD operations for groups and retrieves tree-view data for account categories:
+ * - `getTreeViewData`: Retrieves and structures groups under their respective account categories.
+ * - `addGroup`: Adds a new group to a specified category.
+ * - `editGroup`: Updates the name of an existing group.
+ * - `deleteGroup`: Deletes an existing group.
+ * 
+ * Each method handles errors and returns appropriate HTTP status codes and messages.
+ */
 exports.getTreeViewData = (req, res) => {
     try {
         const categories = AccountCategory.find();

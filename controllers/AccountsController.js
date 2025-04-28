@@ -1,5 +1,18 @@
 const MasterAccount = require('../models/MasterAccount');
 
+/**
+ * MasterAccount Controller
+ * 
+ * Handles CRUD operations for MasterAccount:
+ * - `getAllMasterAccounts`: Fetches and returns all master accounts.
+ * - `addMasterAccount`: Adds a new master account.
+ * - `editMasterAccount`: Updates an existing master account.
+ * - `deleteMasterAccount`: Deletes a master account.
+ * 
+ * Each method handles potential errors and returns appropriate responses with HTTP status codes.
+ */
+
+
 exports.getAllMasterAccounts = (req, res) => {
     try {
         const accounts = MasterAccount.find();

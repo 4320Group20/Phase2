@@ -1,5 +1,18 @@
 const db = require('../db');
 
+/**
+ * AccountCategory Model
+ * 
+ * Provides functions for managing account categories in the database:
+ * - `createAccountCategory`: Inserts a new account category into the database.
+ * - `getAllCategories`: Retrieves all account categories from the database.
+ * - `getCategoryById`: Retrieves a specific account category by ID.
+ * - `updateCategory`: Updates the name and type of an existing account category.
+ * - `deleteCategory`: Deletes an account category by ID.
+ * 
+ * Each function interacts with the database and returns the result of the operation.
+ */
+
 module.exports = {
     createAccountCategory: (categoryData) => {
         const query = db.prepare(`
