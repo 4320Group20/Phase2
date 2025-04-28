@@ -14,100 +14,43 @@
  * Each report is generated based on the provided criteria and returned as a structured JSON response.
  */
 
-const filterTransactions = (criteria) => {
-    return transactions.filter(t => {
-        const date = new Date(t.date);
-        const start = criteria.startDate ? new Date(criteria.startDate) : null;
-        const end = criteria.endDate ? new Date(criteria.endDate) : null;
-
-        return (!start || date >= start) && (!end || date <= end);
-    });
-};
-
-const generateSummaryReport = (filtered) => {
-    let totalDebit = 0;
-    let totalCredit = 0;
-
-    for (const t of filtered) {
-        for (const line of t.transactionLines) {
-            totalDebit += line.debitedAmount || 0;
-            totalCredit += line.creditedAmount || 0;
-        }
-    }
-
-    return {
-        reportType: 'Summary',
-        totalDebit,
-        totalCredit,
-        transactionsCount: filtered.length,
-    };
-};
-
-const generateAccountReport = (filtered, accountType) => {
-    const accountTotals = {};
-
-    for (const t of filtered) {
-        for (const line of t.transactionLines) {
-            const account = accounts.find(a => a.id === line.accountId);
-            if (account && account.type === accountType) {
-                if (!accountTotals[account.name]) {
-                    accountTotals[account.name] = { debit: 0, credit: 0 };
-                }
-
-                accountTotals[account.name].debit += line.debitedAmount || 0;
-                accountTotals[account.name].credit += line.creditedAmount || 0;
-            }
-        }
-    }
-
-    return {
-        reportType: `By Account Type (${accountType})`,
-        accountTotals
-    };
-};
-
-const generateCategoryReport = (filtered, category) => {
-    const totals = { debit: 0, credit: 0 };
-
-    for (const t of filtered) {
-        for (const line of t.transactionLines) {
-            const account = accounts.find(a => a.id === line.accountId);
-            if (account && account.category === category) {
-                totals.debit += line.debitedAmount || 0;
-                totals.credit += line.creditedAmount || 0;
-            }
-        }
-    }
-
-    return {
-        reportType: `By Category (${category})`,
-        totals
-    };
-};
+const Transaction = require("../models/Transaction");
 
 exports.generate = (req, res) => {
-    const { reportType, criteria } = req.body;
-
-    const filtered = filterTransactions(criteria);
-
     try {
-        let reportData;
-        switch (reportType) {
-            case 'summary':
-                reportData = generateSummaryReport(filtered);
-                break;
-            case 'byAccount':
-                reportData = generateAccountReport(filtered, criteria.accountType);
-                break;
-            case 'byCategory':
-                reportData = generateCategoryReport(filtered, criteria.category);
-                break;
-            default:
-                return res.status(400).json({ message: 'Unsupported report type' });
+        const { reportType, startDate, endDate, accountType, category, userId } = req.body;
+        if (!reportType || !startDate || !endDate) {
+            return res.status(400).json({ message: 'reportType, startDate, and endDate are required.' });
+        }
+        
+        // Pull all lines in the date range
+        const rows = Transaction.getAllTransactionsByDate(userId, startDate, endDate);
+
+        // Summary report
+        if (reportType === 'summary') {
+            const totalDebit = rows.reduce((sum, r) => sum + r.debit, 0);
+            const totalCredit = rows.reduce((sum, r) => sum + r.credit, 0);
+            return res.json({ reportType, startDate, endDate, totalDebit, totalCredit });
         }
 
-        res.json(reportData);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+        // Grouped report
+        const data = {};
+        rows.forEach(r => {
+            let key;
+            if (reportType === 'byAccount') {
+                key = r.category_field === accountType ? accountType : 'Other';
+            } else { // byCategory
+                if (category && r.category_field !== category) return;
+                key = r.category_field;
+            }
+            if (!data[key]) data[key] = { totalDebit: 0, totalCredit: 0 };
+            data[key].totalDebit += r.debit;
+            data[key].totalCredit += r.credit;
+        });
+
+        return res.json({ reportType, startDate, endDate, data });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Server error.' });
     }
 };

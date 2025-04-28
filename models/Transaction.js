@@ -35,5 +35,23 @@ module.exports = {
         `).all(userId);
 
         return rows;
+    },
+
+    getAllTransactionsByDate: (userId, startDate, endDate) => {
+        const rows = db.prepare(`
+            SELECT
+              t.transaction_id  AS id,
+              t.date,
+              t.description,
+              tl.credited_amount AS credit,
+              tl.debited_amount  AS debit,
+              tl.comments        AS category_field
+            FROM "transaction" t
+            JOIN transactionline tl ON t.transaction_id = tl.transaction_id
+            WHERE t.user_id = ?
+              AND date(t.date) BETWEEN date(?) AND date(?)`
+        ).all(userId, startDate, endDate);
+
+        return rows;
     }
 };
