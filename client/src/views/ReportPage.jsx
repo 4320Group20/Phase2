@@ -25,7 +25,7 @@ const ReportPage = () => {
     const handleGenerate = async (filters) => {
         setError(null);
         try {
-            const res = await fetch("http://localhost:5000/report", {
+            const res = await fetch("http://localhost:5000/api/reports/generate", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

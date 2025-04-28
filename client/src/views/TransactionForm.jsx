@@ -57,7 +57,7 @@ function TransactionForm() {
 
         try {
             const userId = localStorage.getItem('userId');
-            const res = await fetch('http://localhost:5000/transactions', {
+            const res = await fetch('http://localhost:5000/api/transactions/add', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

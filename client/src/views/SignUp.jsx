@@ -38,7 +38,7 @@ const SignUp = () => {
   const handleSignUp = async (e) => {
     
     // Create new user
-    const res = await fetch('http://localhost:5000/register', {
+    const res = await fetch('http://localhost:5000/api/users/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, username, address, email, password })
