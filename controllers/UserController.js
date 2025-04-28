@@ -53,10 +53,9 @@ exports.deleteUser = (req,res) => {
         // fetch userpassword_id
         const row = NonAdminUser.getUserPasswordById(id);
         if (!row) return res.status(404).json({ message: 'User not found.' });
-
-        // delete user record first
-        NonAdminUser.deleteUser(id);
+        
         UserPassword.deleteUserPassword(row.userpassword_id);
+        NonAdminUser.deleteUser(id);
 
         return res.json({ success: true });
     } catch (err) {

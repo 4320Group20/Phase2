@@ -16,11 +16,11 @@ const db = require('../db');
 
 module.exports = {
     // Create a new password
-    createUserPassword: ({ hash, expiryTime, accountExpiryDate }) => {
+    createUserPassword: (encrypted_password, expiryTime, accountExpiryDate) => {
         const result = db.prepare(
             `INSERT INTO userpassword (encrypted_password, password_expiry_time, user_account_expiry_date)
              VALUES (?, ?, ?)`
-        ).run(hash, expiryTime, accountExpiryDate);
+        ).run(encrypted_password, expiryTime, accountExpiryDate);
         return result;
     },
 
@@ -61,7 +61,7 @@ module.exports = {
 
     // Delete password by id
     deleteUserPassword: (id) => {
-        const query = db.prepare(`DELETE FROM userpassword WHERE id = ?`);
+        const query = db.prepare(`DELETE FROM userpassword WHERE userpassword_id = ?`);
         const result = query.run(id);
         return { deleted: result.changes > 0 };
     }

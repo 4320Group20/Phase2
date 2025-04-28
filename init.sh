@@ -5,8 +5,8 @@ echo " Installing root dependencies"
 npm install
 
 echo " Initializing DB"
+node init-db.js
 if [ "$1" == "y" ]; then
-  node init-db.js
   node populate-db.js
 fi
 
