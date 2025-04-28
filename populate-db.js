@@ -1,57 +1,123 @@
 const Database = require('better-sqlite3');
+const bcrypt = require('bcrypt');
 const db = new Database('./database.db');
 
 console.log('Populating DB...');
 
-db.transaction(() => {
-  // Master Accounts
-  const insertMaster = db.prepare('INSERT INTO masteraccount (name, opening_amount, closing_amount) VALUES (?, ?, ?)');
-  insertMaster.run('Assets', 10000, 15000);
-  insertMaster.run('Liabilities', 5000, 4500);
-  insertMaster.run('Equity', 2000, 3000);
+// Insert default admin login if not present
+const adminExists = db
+    .prepare('SELECT 1 FROM administrator WHERE username = ?')
+    .get('admin');
+if (!adminExists) {
+    const hash = bcrypt.hashSync('admin123', 10);
+    db.prepare(
+        'INSERT INTO administrator (username, encrypted_password) VALUES (?, ?)'
+    ).run('admin', hash);
+    console.log('Default admin created: username=admin, password=admin123');
+}
 
-  // Groups
-  const insertGroup = db.prepare('INSERT INTO "group" (name, parent_masteraccount_id, parent_group_id) VALUES (?, ?, ?)');
-  insertGroup.run('Cash Group', 1, 1);
-  insertGroup.run('Loan Group', 2, 2);
-  insertGroup.run('Investment Group', 3, 3);
+// Insert default non-admin users if none exist
+const userCount = db.prepare('SELECT COUNT(*) as count FROM nonadminuser').get().count;
+if (userCount === 0) {
+    const defaultUsers = [
+        { name: 'Alice Smith', username: 'alice', address: '123 Maple St', email: 'alice@example.com', password: 'alicepw' },
+        { name: 'Bob Jones', username: 'bob', address: '456 Oak Ave', email: 'bob@example.com', password: 'bobpw' },
+        { name: 'Charlie Brown', username: 'charlie', address: '789 Pine Rd', email: 'charlie@example.com', password: 'charliepw' },
+        { name: 'Dana White', username: 'dana', address: '101 Elm St', email: 'dana@example.com', password: 'danapw' },
+        { name: 'Eve Black', username: 'eve', address: '202 Cedar Ln', email: 'eve@example.com', password: 'evepw' }
+    ];
+    defaultUsers.forEach(u => {
+        const hash = bcrypt.hashSync(u.password, 10);
+        const now = Math.floor(Date.now() / 1000);
+        const expiryTime = now + 60 * 60 * 24 * 90;
+        const accountExpiry = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        const pwInfo = db.prepare(
+            `INSERT INTO userpassword (encrypted_password, password_expiry_time, user_account_expiry_date)
+       VALUES (?, ?, ?)`
+        ).run(hash, expiryTime, accountExpiry);
+        db.prepare(
+            `INSERT INTO nonadminuser (name, username, address, email, userpassword_id)
+       VALUES (?, ?, ?, ?, ?)`
+        ).run(u.name, u.username, u.address, u.email, pwInfo.lastInsertRowid);
+    });
+    console.log('Seeded default non-admin users');
+}
 
-  // User Passwords
-  const insertPwd = db.prepare('INSERT INTO userpassword (encrypted_password, password_expiry_time, user_account_expiry_date) VALUES (?, ?, ?)');
-  insertPwd.run('encrypted123', 30, '2025-12-31');
-  insertPwd.run('encrypted456', 60, '2026-06-30');
-  insertPwd.run('encrypted789', 90, '2027-01-01');
+// Inserting example transactions
+(() => {
+    // fetch their IDs
+    const alice = db.prepare(`SELECT nonadminuser_id AS id FROM nonadminuser WHERE username = ?`).get('alice');
+    const bob = db.prepare(`SELECT nonadminuser_id AS id FROM nonadminuser WHERE username = ?`).get('bob');
+    if (!alice || !bob) return;
 
-  // Non-Admin Users
-  const insertNonAdmin = db.prepare('INSERT INTO nonadminuser (name, username, address, email, userpassword_id) VALUES (?, ?, ?, ?, ?)');
-  insertNonAdmin.run('Alice', 'alice123', '123 Main St', 'alice@example.com', 1);
-  insertNonAdmin.run('Bob', 'bobby1', '456 Park Ave', 'bob@example.com', 2);
-  insertNonAdmin.run('Charlie', 'cdog', '789 Elm St', 'charlie@example.com', 3);
+    // don't reseed if Alice already has transactions
+    const existing = db.prepare(`SELECT 1 FROM "transaction" WHERE user_id = ?`).get(alice.id);
+    if (existing) return;
 
-  // Administrators
-  const insertAdmin = db.prepare('INSERT INTO administrator (name, date_hired, date_finished, userpassword_id) VALUES (?, ?, ?, ?)');
-  insertAdmin.run('Admin One', '2023-01-01', null, 1);
-  insertAdmin.run('Admin Two', '2022-05-15', '2024-01-01', 2);
-  insertAdmin.run('Admin Three', '2021-07-20', null, 3);
+    // helper to insert one transaction+lines
+    const insertTxn = (userId, date, desc, lines) => {
+        const t = db.prepare(`INSERT INTO "transaction"(date,description,user_id) VALUES(?,?,?)`)
+            .run(date, desc, userId);
+        const tid = t.lastInsertRowid;
+        const insLine = db.prepare(`INSERT INTO transactionline
+      (transaction_id, credited_amount, debited_amount, comments)
+      VALUES(?,?,?,?)`);
+        lines.forEach(l => insLine.run(tid, l.credit, l.debit, l.comments));
+    };
 
-  // Account Categories
-  const insertAccountCat = db.prepare('INSERT INTO accountcategory (name, type, group_id) VALUES (?, ?, ?)');
-  insertAccountCat.run('Cash', 'Asset', 1);
-  insertAccountCat.run('Loans', 'Liability', 2);
-  insertAccountCat.run('Stocks', 'Equity', 3);
+    // Alice: one simple balanced transaction
+    insertTxn(alice.id,
+        new Date().toISOString(),
+        'Alice initial deposit',
+        [
+            { credit: 1000, debit: 0, comments: 'Cash in' },
+            { credit: 0, debit: 1000, comments: 'Equity out' }
+        ]
+    );
 
-  // Transactions
-  const insertTransaction = db.prepare('INSERT INTO "transaction" (date, description, user_id) VALUES (?, ?, ?)');
-  insertTransaction.run('2024-01-01', 'Opening balance', 1);
-  insertTransaction.run('2024-02-15', 'Loan payment', 2);
-  insertTransaction.run('2024-03-20', 'Investment return', 3);
+    // Bob: two sample transactions
+    insertTxn(bob.id,
+        new Date().toISOString(),
+        'Bob salary',
+        [
+            { credit: 2000, debit: 0, comments: 'Salary' },
+            { credit: 0, debit: 2000, comments: 'Income' }
+        ]
+    );
+    insertTxn(bob.id,
+        new Date().toISOString(),
+        'Bob rent payment',
+        [
+            { credit: 0, debit: 800, comments: 'Cash out' },
+            { credit: 800, debit: 0, comments: 'Rent exp' }
+        ]
+    );
 
-  // Transaction Lines
-  const insertLine = db.prepare(`INSERT INTO transactionline (credited_amount, debited_amount, comments, transaction_id, first_masteraccount_id, second_masteraccount_id)
-    VALUES (?, ?, ?, ?, ?, ?)`);
-  insertLine.run(1000, 0, 'Deposit', 1, 1, 2);
-  insertLine.run(0, 500, 'Loan Repayment', 2, 2, 3);
-  insertLine.run(200, 0, 'Stock Gains', 3, 3, 1);
+    console.log('Seeded sample transactions for Alice & Bob');
 })();
+
+// Account Categories
+(() => {
+    const cats = [
+        { name: 'Assets', type: 'Balance Sheet' },
+        { name: 'Liabilities', type: 'Balance Sheet' },
+        { name: 'Equity', type: 'Balance Sheet' },
+        { name: 'Income', type: 'P&L' },
+        { name: 'Expenses', type: 'P&L' },
+    ];
+    cats.forEach(cat => {
+        const exists = db.prepare(
+            'SELECT 1 FROM accountcategory WHERE name = ?'
+        ).get(cat.name);
+        if (!exists) {
+            db.prepare(
+                'INSERT INTO accountcategory(name,type) VALUES(?,?)'
+            ).run(cat.name, cat.type);
+        }
+    });
+    console.log('Seeded default account categories');
+})();
+
+
 
 console.log('DB Successfully populated');

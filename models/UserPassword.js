@@ -15,12 +15,11 @@ const db = require('../db');
 
 module.exports = {
     // Create a new password
-    createUserPassword: ({ encryptedPassword, passwordExpiryTime, userAccountExpiryDate }) => {
-        const q = db.prepare(`
-            INSERT INTO userpassword (encrypted_Password, password_Expiry_Time, user_Account_Expiry_Date)
-            VALUES (?,?,?)
-        `);
-        const result = q.run(encryptedPassword, passwordExpiryTime, userAccountExpiryDate);
+    createUserPassword: ({ hash, expiryTime, accountExpiryDate }) => {
+        const result = db.prepare(
+            `INSERT INTO userpassword (encrypted_password, password_expiry_time, user_account_expiry_date)
+             VALUES (?, ?, ?)`
+        ).run(hash, expiryTime, accountExpiryDate);
         return result;
     },
 
@@ -48,20 +47,15 @@ module.exports = {
     },
 
     // Update password by id
-    updateUserPassword: (id, newData) => {
-        const query = db.prepare(`
+    updateUserPassword: (newHash, id) => {
+        const result = db.prepare(`
             UPDATE userpassword
-            SET userName = ?, encryptedPassword = ?, passwordExpiryTime = ?, userAccountExpiryDate = ?
-            WHERE id = ?
-        `);
-        query.run(
-            newData.userName,
-            newData.encryptedPassword,
-            newData.passwordExpiryTime,
-            newData.userAccountExpiryDate,
-            id
-        );
-        return { id, ...newData };
+            SET encrypted_password    = ?,
+                password_expiry_time   = 90,
+                user_account_expiry_date = DATE('now','+90 days')
+            WHERE userpassword_id = ?`
+        ).run(newHash, id);
+        return result;
     },
 
     // Delete password by id

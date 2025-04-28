@@ -14,48 +14,10 @@ const db = require('../db');
  */
 
 module.exports = {
-    createAdministrator:(adminData) => {
-        const query = db.prepare(`
-            INSERT INTO administrators (id, name, dateHired, dateFinished)
-            VALUES (?, ?, ?, ?)
-        `);
-        query.run(
-            adminData.id,
-            adminData.name,
-            adminData.dateHired,
-            adminData.dateFinished
-        );
-        return { id: adminData.id, ...adminData };
-    },
-
-    getAllAdministrators: () => {
-        const query = db.prepare(`SELECT * FROM administrators`);
-        return query.all();
-    },
-
-    getAdministratorById: (id) => {
-        const query = db.prepare(`SELECT * FROM administrators WHERE id = ?`);
-        return query.get(id);
-    },
-
-    updateAdministrator: (id, newData) => {
-        const query = db.prepare(`
-            UPDATE administrators
-            SET name = ?, dateHired = ?, dateFinished = ?
-            WHERE id = ?
-        `);
-        query.run(
-            newData.name,
-            newData.dateHired,
-            newData.dateFinished,
-            id
-        );
-        return { id, ...newData };
-    },
-
-    deleteAdministrator: (id) => {
-        const query = db.prepare(`DELETE FROM administrators WHERE id = ?`);
-        const result = query.run(id);
-        return { deleted: result.changes > 0 };
+    getAdministratorByUsername: (username) => {
+        const adminRow = db
+            .prepare('SELECT administrator_id, encrypted_password FROM administrator WHERE username = ?')
+            .get(username);
+        return adminRow
     }
 };

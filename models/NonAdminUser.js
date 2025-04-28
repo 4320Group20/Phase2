@@ -14,33 +14,46 @@ const db = require('../db');
  */
 
 module.exports = {
-    createUser: (userData) => {
-        const query = db.prepare(`
-            INSERT INTO nonadminuser (name, username, address, email, userpassword_id)
-            VALUES (?, ?, ?, ?, ?)
-          `);
-        const result = query.run(userData.name, userData.username, userData.address, userData.email, userData.password_id);
-        return { id: result.lastInsertRowid, ...userData };
+    createUser: (name, username, address, email, userpassword_id) => {
+        const userInfo = db.prepare(
+            `INSERT INTO nonadminuser (name, username, address, email, userpassword_id)
+             VALUES (?, ?, ?, ?, ?)`
+        ).run(name, username, address, email, userpassword_id);
+        return userInfo;
     },
 
     getAllUsers: () => {
-        const query = db.prepare(`SELECT * FROM nonadminuser`);
+        const query = db.prepare(
+            `SELECT nu.nonadminuser_id AS id,
+              nu.name,
+              nu.username,
+              nu.address,
+              nu.email,
+              up.encrypted_password
+            FROM nonadminuser nu
+            JOIN userpassword up ON nu.userpassword_id = up.userpassword_id`
+        );
         return query.all();
     },
 
-    getUserById: (id) => {
-        const query = db.prepare(`SELECT * FROM nonadminuser WHERE id = ?`);
-        return query.get(id);
+    getAllUserInfos: () => {
+        const users = db.prepare(
+            `SELECT nonadminuser_id AS id, name, username, address, email
+                FROM nonadminuser`
+        ).all();
+        return users;
     },
 
-    updateUser: (id, newData) => {
-        const query = db.prepare(`
-            UPDATE nonadminuser
-            SET name = ?, address = ?, email = ?
-            WHERE id = ?
-          `);
-          query.run(newData.name, newData.address, newData.email, id);
-          return { id, ...newData };
+    getUserPasswordById: (id) => {
+        const info = db.prepare('SELECT userpassword_id FROM nonadminuser WHERE nonadminuser_id = ?').get(id);
+        return info;
+    },
+
+    updateUser: (name, address, email, id) => {
+        const info = db.prepare(
+            `UPDATE nonadminuser SET name = ?, address = ?, email = ? WHERE nonadminuser_id = ?`
+        ).run(name, address, email, id);
+        return info;
     },
 
     deleteUser: (id) => {
@@ -51,7 +64,31 @@ module.exports = {
 
     // Look up the user record by username
     getUserByUsername: (username) => {
-        const q = db.prepare(`SELECT * FROM nonadminuser WHERE username = ?`);
+        const q = db.prepare(`SELECT 1 FROM nonadminuser WHERE username = ?`);
         return q.get(username);
     },
+
+    getUserInfoByUsername: (username) => {
+        const row = db.prepare(
+            `SELECT nu.nonadminuser_id AS id, nu.name, up.encrypted_password
+                FROM nonadminuser nu
+                JOIN userpassword up ON nu.userpassword_id = up.userpassword_id
+                WHERE nu.username = ?`
+        ).get(username);
+        return row;
+    },
+
+    getUserInfoJoined: (username) => {
+        const row = db.prepare(`
+            SELECT nu.nonadminuser_id AS userId,
+                   up.userpassword_id  AS pwdId,
+                   up.encrypted_password
+            FROM nonadminuser nu
+            JOIN userpassword up
+              ON nu.userpassword_id = up.userpassword_id
+            WHERE nu.username = ?`
+        ).get(username);
+
+        return row;
+    }
 };

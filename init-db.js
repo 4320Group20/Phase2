@@ -51,9 +51,8 @@ db.exec(`
 db.exec(`
   CREATE TABLE IF NOT EXISTS administrator (
     administrator_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name VARCHAR(255) NOT NULL,
-    userpassword_id INTEGER NOT NULL,
-    FOREIGN KEY (userpassword_id) REFERENCES userpassword(userpassword_id)
+    username VARCHAR(255) NOT NULL,
+    encrypted_password VARCHAR(255) NOT NULL
   );
 `);
 
@@ -62,7 +61,7 @@ db.exec(`
     accountcategory_id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR(255) NOT NULL,
     type VARCHAR(255) NOT NULL,
-    group_id INTEGER NOT NULL,
+    group_id INTEGER DEFAULT NULL,
     FOREIGN KEY (group_id) REFERENCES "group"(group_id)
       ON DELETE SET NULL
   );
@@ -85,7 +84,7 @@ db.exec(`
     debited_amount DOUBLE NOT NULL,
     comments VARCHAR(255) NOT NULL,
     transaction_id INTEGER NOT NULL,
-    FOREIGN KEY (transaction_id) REFERENCES "transaction"(transaction_id),
+    FOREIGN KEY (transaction_id) REFERENCES "transaction"(transaction_id)
   );
 `);
 
