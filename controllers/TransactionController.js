@@ -1,5 +1,5 @@
 const Transaction = require('../models/Transaction');
-const TransactionLine = require('../modes/TransactionLine');
+const TransactionLine = require('../models/TransactionLine');
 
 /**
  * TransactionController Class
