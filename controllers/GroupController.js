@@ -35,3 +35,7 @@ exports.createGroup = (req, res) => {
         res.status(500).json({ message: 'Could not create group.' });
     }
 };
+
+exports.updateGroup = (req, res) => {
+
+};
