@@ -13,48 +13,27 @@ const db = require('../db');
  */
 
 module.exports = {
-    createTransaction: (transactionData) => {
-        const query = db.prepare(`
-            INSERT INTO transactions (
-                id, date, description
-            )
-            VALUES (?, ?, ?)
-        `);
-        const result = query.run(
-            transactionData.id,
-            transactionData.date.toISOString(), // Store as ISO string
-            transactionData.description
-        );
-        return { id: transactionData.id, ...transactionData };
+    addTransaction: (date, description, userId) => {
+        const t = db.prepare('INSERT INTO "transaction"(date,description,user_id)VALUES(?,?,?)')
+            .run(date, description, userId);
+        return t;
     },
 
-    getAllTransactions: () => {
-        const query = db.prepare(`SELECT * FROM transactions`);
-        return query.all();
-    },
+    getAllInfosByUID: (userId) => {
+        const rows = db.prepare(`
+            SELECT
+              t.transaction_id AS id,
+              t.date,
+              t.description,
+              tl.transactionline_id AS lineId,
+              tl.credited_amount,
+              tl.debited_amount,
+              tl.comments
+            FROM "transaction" t
+            JOIN transactionline tl ON t.transaction_id = tl.transaction_id
+            WHERE t.user_id = ?
+        `).all(userId);
 
-    getTransactionById: (id) => {
-        const query = db.prepare(`SELECT * FROM transactions WHERE id = ?`);
-        return query.get(id);
-    },
-
-    updateTransaction: (id, newData) => {
-        const query = db.prepare(`
-            UPDATE transactions
-            SET date = ?, description = ?
-            WHERE id = ?
-        `);
-        query.run(
-            newData.date.toISOString(),
-            newData.description,
-            id
-        );
-        return { id, ...newData };
-    },
-
-    deleteTransaction: (id) => {
-        const query = db.prepare(`DELETE FROM transactions WHERE id = ?`);
-        const result = query.run(id);
-        return { deleted: result.changes > 0 };
+        return rows;
     }
 };

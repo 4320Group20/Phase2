@@ -1,25 +1,4 @@
-﻿// --- TRANSACTIONS --- //
-app.post('/transactions', (req, res) => {
-    try {
-        const { date, description, userId, lines } = req.body;
-        if (!date || !description || !userId || !Array.isArray(lines) || !lines.length)
-            return res.status(400).json({ message: 'Invalid payload.' });
-        // Validate balanced
-        const sum = lines.reduce((a, l) => (a + (l.debitedAmount || 0) - (l.creditedAmount || 0)), 0);
-        if (sum !== 0)
-            return res.status(400).json({ message: 'Unbalanced transaction.' });
-        // Insert transaction
-        const t = db.prepare('INSERT INTO "transaction"(date,description,user_id)VALUES(?,?,?)')
-            .run(date, description, userId);
-        const tid = t.lastInsertRowid;
-        const ls = db.prepare('INSERT INTO transactionline(transaction_id,credited_amount,debited_amount,comments)VALUES(?,?,?,?)');
-        lines.forEach(l => ls.run(tid, l.creditedAmount || 0, l.debitedAmount || 0, l.comments || ''));
-        console.log('✅ Transaction successful for user', userId);
-        res.status(201).json({ transactionId: tid });
-    } catch (e) { console.error(e); res.status(500).json({ message: 'Server error.' }); }
-});
-
-// GET transactions (optionally filtered by userId)
+﻿// GET transactions (optionally filtered by userId)
 app.get('/transactions', (req, res) => {
     try {
         const userId = Number(req.query.userId);
