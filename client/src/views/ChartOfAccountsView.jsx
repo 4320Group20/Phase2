@@ -25,7 +25,7 @@ const ChartOfAccountsView = ({
   onRemoveAccount,           // (id) => void
   onExit                     // () => void
 }) => {
-  // Local state for the “Add New Master Account” form
+  // Local state for the Add New Master Account form
   const [acName, setAcName] = useState('');
   const [acOAmount, setAcOAmount] = useState('');
   const [acGroupID, setAcGroupID] = useState(groups.length ? groups[0].id : '');

@@ -21,6 +21,7 @@ db.exec(`
     name VARCHAR(255) NOT NULL,
     parent_masteraccount_id INTEGER NOT NULL,
     parent_group_id INTEGER NOT NULL,
+    category_id INTEGER NOT NULL,
     FOREIGN KEY (parent_masteraccount_id) REFERENCES masteraccount(masteraccount_id)
       ON DELETE CASCADE,
     FOREIGN KEY (parent_group_id) REFERENCES "group"(group_id)

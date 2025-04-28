@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ChartOfAccountsView from '../views/ChartOfAccountsView';
 
-const API = 'http://localhost:5000';
+const API = 'http://localhost:5000/api';
 
 export default function ChartOfAccountsContainer({ onExit }) {
   const [groups, setGroups] = useState([]);
@@ -15,14 +15,14 @@ export default function ChartOfAccountsContainer({ onExit }) {
   }, []);
 
   const fetchGroups = () => {
-    fetch(`${API}/groups`)
+    fetch(`${API}/groups/all`)
       .then(res => res.ok ? res.json() : Promise.reject('Failed to load groups'))
       .then(data => setGroups(data.groups || []))
       .catch(msg => setError(msg));
   };
 
   const fetchAccounts = () => {
-    fetch(`${API}/masteraccounts`)
+    fetch(`${API}/accounts/masteraccounts`)
       .then(res => res.ok ? res.json() : Promise.reject('Failed to load accounts'))
       .then(data => setAccounts(data.accounts || []))
       .catch(msg => setError(msg));
@@ -31,7 +31,7 @@ export default function ChartOfAccountsContainer({ onExit }) {
   // Handlers passed to view
   const handleAddAccount = ({ name, openingAmount, groupID }) => {
     setError('');
-    fetch(`${API}/masteraccounts`, {
+    fetch(`${API}/accounts/masteraccounts`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, opening_amount: openingAmount, parent_group_id: groupID })
@@ -54,7 +54,7 @@ export default function ChartOfAccountsContainer({ onExit }) {
     if (field === 'openingAmount') body.opening_amount = value;
     if (field === 'groupID') body.parent_group_id = value;
 
-    fetch(`${API}/masteraccounts/${id}`, {
+    fetch(`${API}/accounts/masteraccounts/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
@@ -65,7 +65,7 @@ export default function ChartOfAccountsContainer({ onExit }) {
 
   const handleRemoveAccount = (id) => {
     setError('');
-    fetch(`${API}/masteraccounts/${id}`, { method: 'DELETE' })
+    fetch(`${API}/accounts/masteraccounts/${id}`, { method: 'DELETE' })
       .then(res => res.ok ? fetchAccounts() : res.text().then(t => Promise.reject(t)))
       .catch(msg => setError(msg));
   };

@@ -15,7 +15,6 @@ import bgImage from '../assets/webBackground.webp';
  */
 
 const AccountGroupsControl = () => {
-    const API = 'http://localhost:5000';
     const [categories, setCategories] = useState([]);
     const [groups, setGroups] = useState([]);
     const [selectedCat, setSelectedCat] = useState('');
@@ -37,7 +36,7 @@ const AccountGroupsControl = () => {
     };
 
     const reloadGroups = () => {
-        fetch(`http://localhost:5000/api/groups/`)
+        fetch(`http://localhost:5000/api/groups/all`)
             .then(res => res.ok ? res.json() : Promise.reject('Could not load groups'))
             .then(json => setGroups(json.groups || []))
             .catch(msg => setError(msg));
@@ -91,7 +90,7 @@ const AccountGroupsControl = () => {
         if (!selectedGroup) return setError('Select a group');
         const newName = prompt('New group name');
         if (!newName) return;
-        fetch(`http://localhost:5000/api/groups/edit/${selectedGroup}`, {
+        fetch(`http://localhost:5000/api/groups/${selectedGroup}`, {
             method: 'PUT', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name: newName })
         })
