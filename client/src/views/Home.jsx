@@ -20,7 +20,7 @@ import bgImage from '../assets/webBackground.webp';
 
 const Home = () => {
     const name = localStorage.getItem('userName');
-    const isSignedIn = name !== undefined;
+    const isSignedIn = name !== null;
 
     const isAdmin = localStorage.getItem('admin') === 'true';
     return (
