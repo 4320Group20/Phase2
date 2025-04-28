@@ -1,5 +1,4 @@
 const Transaction = require('../models/Transaction');
-const TransactionLine = require('../models/TransactionLine');
 
 const transactions = []; // In-memory transactions list
 
