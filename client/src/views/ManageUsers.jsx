@@ -27,7 +27,7 @@ const ManageUsers = () => {
 
     // Fetch users on mount
     useEffect(() => {
-        fetch('http://localhost:5000/admin/users')
+        fetch('http://localhost:5000/api/users/all')
             .then(res => {
                 if (!res.ok) throw new Error(`Error fetching users: ${res.status}`);
                 return res.json();
@@ -45,7 +45,7 @@ const ManageUsers = () => {
         e.preventDefault();
         setError(null);
         try {
-            const res = await fetch('http://localhost:5000/register', {
+            const res = await fetch('http://localhost:5000/api/users/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(form)
@@ -53,7 +53,7 @@ const ManageUsers = () => {
             const data = await res.json();
             if (!res.ok) throw new Error(data.message);
             // Refresh users list
-            const refreshed = await fetch('http://localhost:5000/admin/users').then(r => r.json());
+            const refreshed = await fetch('http://localhost:5000/api/users/all').then(r => r.json());
             setUsers(refreshed.users || []);
             setForm({ name: '', username: '', address: '', email: '', password: '' });
         } catch (err) {
@@ -64,7 +64,7 @@ const ManageUsers = () => {
     const handleDelete = async id => {
         if (!window.confirm('Delete this user?')) return;
         try {
-            const res = await fetch(`http://localhost:5000/users/${id}`, { method: 'DELETE' });
+            const res = await fetch(`http://localhost:5000/api/users/${id}`, { method: 'DELETE' });
             const data = await res.json();
             if (!res.ok) throw new Error(data.message);
             setUsers(users.filter(u => u.id !== id));
@@ -79,7 +79,7 @@ const ManageUsers = () => {
         const email = prompt('Email:', u.email);
         if (name == null || address == null || email == null) return;
         try {
-            const res = await fetch(`http://localhost:5000/users/${u.id}`, {
+            const res = await fetch(`http://localhost:5000/api/users/${u.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, address, email })
