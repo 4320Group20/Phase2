@@ -13,50 +13,55 @@ const db = require('../db');
  */
 
 module.exports = {
-    createMasterAccount: (accountData) => {
-        const query = db.prepare(`
-            INSERT INTO masteraccounts (
-                id, name, openingAmount, closingAmount
-            )
-            VALUES (?, ?, ?, ?)
-        `);
-        const result = query.run(
-            accountData.id,
-            accountData.name,
-            accountData.openingAmount,
-            accountData.closingAmount
-        );
-        return { id: accountData.id, ...accountData };
+    getAll: () => {
+        const rows = db.prepare(`
+            SELECT
+              m.masteraccount_id   AS masteraccount_id,
+              m.name               AS name,
+              m.opening_amount     AS opening_amount,
+              m.closing_amount     AS closing_amount,
+              m.group_id           AS parent_group_id
+            FROM masteraccount m`
+        ).all();
+
+        return rows;
     },
 
-    getAllMasterAccounts: () => {
-        const query = db.prepare(`SELECT * FROM masteraccounts`);
-        return query.all();
+    create: (name, opening_amount, parent_group_id) => {
+        const info = db.prepare(`
+            INSERT INTO masteraccount (name, opening_amount, closing_amount, group_id)
+            VALUES (?, ?, ?, ?)`
+        ).run(name, opening_amount, opening_amount, parent_group_id || null);
+
+        return info;
     },
 
-    getMasterAccountById: (id) => {
-        const query = db.prepare(`SELECT * FROM masteraccounts WHERE id = ?`);
-        return query.get(id);
+    getByID: (id) => {
+        const account = db.prepare(`
+            SELECT masteraccount_id, name, opening_amount, closing_amount, group_id AS parent_group_id
+            FROM masteraccount
+            WHERE masteraccount_id = ?`
+        ).get(id);
+
+        return account;
     },
 
-    updateMasterAccount: (id, newData) => {
-        const query = db.prepare(`
-            UPDATE masteraccounts
-            SET name = ?, openingAmount = ?, closingAmount = ?
-            WHERE id = ?
-        `);
-        query.run(
-            newData.name,
-            newData.openingAmount,
-            newData.closingAmount,
-            id
-        );
-        return { id, ...newData };
+    update: (sets, vals) => {
+        const info = db.prepare(`
+            UPDATE masteraccount
+            SET ${sets.join(', ')}
+            WHERE masteraccount_id = ?`
+        ).run(...vals);
+
+        return info;
     },
 
-    deleteMasterAccount: (id) => {
-        const query = db.prepare(`DELETE FROM masteraccounts WHERE id = ?`);
-        const result = query.run(id);
-        return { deleted: result.changes > 0 };
+    delete: (id) => {
+        const info = db.prepare(`
+            DELETE FROM masteraccount
+            WHERE masteraccount_id = ?`
+        ).run(id);
+
+        return info;
     }
 };

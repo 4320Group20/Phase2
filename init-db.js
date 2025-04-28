@@ -9,7 +9,9 @@ db.exec(`
     masteraccount_id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR(255) NOT NULL,
     opening_amount DOUBLE NOT NULL,
-    closing_amount DOUBLE
+    closing_amount DOUBLE,
+    group_id INTEGER,
+    FOREIGN KEY (group_id) REFERENCES "group"(group_id)
   );
 `);
 
@@ -87,5 +89,8 @@ db.exec(`
     FOREIGN KEY (transaction_id) REFERENCES "transaction"(transaction_id)
   );
 `);
+
+// Enable FK constraints
+db.exec(`PRAGMA foreign_keys = ON;`);
 
 console.log('DB Successfully initialized');

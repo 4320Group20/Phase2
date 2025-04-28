@@ -15,53 +15,68 @@ const MasterAccount = require('../models/MasterAccount');
 
 exports.getAllMasterAccounts = (req, res) => {
     try {
-        const accounts = MasterAccount.find();
-        res.json(accounts);
+        const rows = MasterAccount.getAll();
+        return res.json({ accounts: rows });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        console.error(err);
+        return res.status(500).json({ message: 'Could not fetch accounts.' });
     }
 };
 
-exports.addMasterAccount = (req, res) => {
-    const { name, openingAmount, closingAmount } = req.body;
-
+exports.createMasterAccount = (req, res) => {
+    const { name, opening_amount, parent_group_id } = req.body;
+    if (!name || opening_amount == null) {
+        return res.status(400).json({ message: 'name and opening_amount are required.' });
+    }
     try {
-        const newAccount = new MasterAccount({
-            name,
-            openingAmount,
-            closingAmount
-        });
+        const info = MasterAccount.create(name, opening_amount, parent_group_id)
+        const account = MasterAccount.getByID(info.lastInsertRowid);
 
-        newAccount.save();
-        res.status(201).json(newAccount);
+        return res.status(201).json({ account });
     } catch (err) {
-        res.status(400).json({ message: err.message });
+        console.error(err);
+        return res.status(500).json({ message: 'Could not create account.' });
     }
 };
 
-exports.editMasterAccount = (req, res) => {
-    const { id } = req.params;
-    const updates = req.body;
+exports.updateMasterAccount = (req, res) => {
+    const id = Number(req.params.id);
+    const { name, opening_amount, parent_group_id } = req.body;
+    const sets = [];
+    const vals = [];
+    if (name !== undefined) { sets.push('name = ?'); vals.push(name); }
+    if (opening_amount !== undefined) { sets.push('opening_amount = ?'); vals.push(opening_amount); }
+    if (parent_group_id !== undefined) { sets.push('group_id = ?'); vals.push(parent_group_id); }
+
+    if (!sets.length) {
+        return res.status(400).json({ message: 'No fields provided to update.' });
+    }
+    vals.push(id);
 
     try {
-        const updated = MasterAccount.findByIdAndUpdate(id, updates, { new: true });
-        if (!updated) return res.status(404).json({ message: "Account not found" });
+        const info = MasterAccount.update(sets, vals);
 
-        res.json(updated);
+        if (info.changes === 0) {
+            return res.status(404).json({ message: 'Account not found.' });
+        }
+        return res.json({ message: 'Updated.' });
     } catch (err) {
-        res.status(400).json({ message: err.message });
+        console.error(err);
+        return res.status(500).json({ message: 'Could not update account.' });
     }
 };
 
 exports.deleteMasterAccount = (req, res) => {
-    const { id } = req.params;
-
+    const id = Number(req.params.id);
     try {
-        const deleted = MasterAccount.findByIdAndDelete(id);
-        if (!deleted) return res.status(404).json({ message: "Account not found" });
+        const info = MasterAccount.delete(id);
 
-        res.json({ message: "Account deleted", account: deleted });
+        if (info.changes === 0) {
+            return res.status(404).json({ message: 'Account not found.' });
+        }
+        return res.json({ message: 'Deleted.' });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        console.error(err);
+        return res.status(500).json({ message: 'Could not delete account.' });
     }
 };

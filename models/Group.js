@@ -47,5 +47,24 @@ module.exports = {
         ).get(id);
 
         return g;
+    },
+
+    updateGroup: (sets, vals) => {
+        const info = db.prepare(`
+            UPDATE "group"
+            SET ${sets.join(', ')}
+            WHERE group_id = ?`
+        ).run(...vals);
+
+        return info;
+    },
+
+    deleteGroup: (id) => {
+        const info = db.prepare(`
+            DELETE FROM "group"
+            WHERE group_id = ?`
+        ).run(id);
+
+        return info;
     }
 };
