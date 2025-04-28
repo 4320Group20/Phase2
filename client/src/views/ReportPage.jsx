@@ -42,11 +42,24 @@ const ReportPage = () => {
     };
 
     const handleExport = () => {
-        // Simple client-side print/export fallback
         if (reportData) {
-            window.print();
+            // Create a new window or iframe to isolate the report content
+            const printWindow = window.open('', '', 'height=600,width=800');
+
+            // Write the content of the report to the new window
+            printWindow.document.write('<html><head><title>Report</title></head><body>');
+            printWindow.document.write('<h1>Financial Report</h1>');
+
+            printWindow.document.write('<div>' + JSON.stringify(reportData, null, 2) + '</div>');
+
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+
+            // Trigger the print dialog
+            printWindow.print();
         }
     };
+
 
     return (
         <div style={styles.pageWrapper}>
