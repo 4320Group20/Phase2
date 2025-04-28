@@ -1,5 +1,5 @@
 const Group = require('../models/Group');
-const AccountCategory = require('../models/AccountCategory');
+const AccountCategory = require('../models/Category');
 /**
  * GroupController Class
  * 

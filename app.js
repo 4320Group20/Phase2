@@ -6,6 +6,7 @@ const transactionRoutes = require('./routes/TransactionRoutes');
 const reportRoutes = require('./routes/ReportRoutes');
 const groupRoutes = require('./routes/GroupRoutes');
 const accountRoutes = require('./routes/AccountRoutes');
+const categoryRoutes = require('./routes/CategoryRoutes');
 const app = express();
 
 // Routes and Parsing
@@ -16,6 +17,7 @@ app.use('/api/transactions', transactionRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api/accounts', accountRoutes);
+app.use('/api/categories', categoryRoutes);
 
 // Serve static files
 app.use(express.static(path.join(__dirname, 'client', 'build')));
